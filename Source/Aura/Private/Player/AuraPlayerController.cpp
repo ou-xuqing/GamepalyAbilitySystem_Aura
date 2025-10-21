@@ -171,7 +171,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 	const FRotator YawRotation = FRotator(0.0f,Rotation.Yaw,0.f);
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);//pawn前进方向
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);//pawn右侧方向
-
+	bAutoRunning = false;
 	if (APawn * ControlledPawn = GetPawn<APawn>())
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection,InputAxisVector.Y);

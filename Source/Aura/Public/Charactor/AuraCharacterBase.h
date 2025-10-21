@@ -49,8 +49,6 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
-	
-
 	UPROPERTY(EditAnywhere,Category = "Attribute")
 	TSubclassOf<UGameplayEffect> DefaultPrimaryAttribute;
 
@@ -59,12 +57,10 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category = "Attribute")
 	TSubclassOf<UGameplayEffect> DefaultVitalAttribute;
-
-	
 	
 	virtual	void InitAbilityActorInfo();
 
-	void InitializeDefaultAttributes() const;
+	virtual void InitializeDefaultAttributes() const;
 
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass, float Level) const;
 

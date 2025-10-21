@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Charactor/AuraCharacterBase.h"
 #include "Interaction/AuraEnemyInterface.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
@@ -19,7 +20,6 @@ class AURA_API AAuraEnemy : public AAuraCharacterBase, public IAuraEnemyInterfac
 public:
 	AAuraEnemy();
 	
-
 	/* EnemyInterface */
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
@@ -37,7 +37,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
+
+	virtual void InitializeDefaultAttributes() const override;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character class Default")
 	int32 Level=1;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+	
 };
