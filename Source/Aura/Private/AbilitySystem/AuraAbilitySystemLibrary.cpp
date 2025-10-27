@@ -48,9 +48,7 @@ UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeMenuWidge
 
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject,ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* Asc)
 {
-	AAuraGameModeBase* GameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-	if (GameMode == nullptr) return;
-	UCharacterClassInfo* CharacterClassInfo = GameMode->CharacterClassInfo;
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 
 	FGameplayEffectContextHandle PrimaryContextHandle= Asc->MakeEffectContext();
 	PrimaryContextHandle.AddSourceObject(Asc->GetAvatarActor());//MMC对于数值的计算中需要用到SourceObject所以在应用Effect前将SO写入Context中
@@ -66,4 +64,22 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 	VitalContextHandle.AddSourceObject(Asc->GetAvatarActor());
 	const FGameplayEffectSpecHandle VitalSpecHandle = Asc->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes,Level,VitalContextHandle);
 	Asc->ApplyGameplayEffectSpecToSelf(*VitalSpecHandle.Data.Get());
+}
+
+void UAuraAbilitySystemLibrary::GiveAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* Asc)
+{
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+
+	for (TSubclassOf<UGameplayAbility> AbilityClass:CharacterClassInfo->CommonAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec =  FGameplayAbilitySpec(AbilityClass,1);
+		Asc->GiveAbility(AbilitySpec);
+	}
+}
+
+UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
+{
+	AAuraGameModeBase* GameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
+	if (GameMode == nullptr) return nullptr;
+	return GameMode->CharacterClassInfo;
 }

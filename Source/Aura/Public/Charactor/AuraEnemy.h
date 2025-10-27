@@ -26,6 +26,8 @@ public:
 	/*CombatInterface */
 	virtual int32 GetPlayerLevel() override;
 
+	void HitReactTagChanged(FGameplayTag CallbackTag,int32 NewCount);
+	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthWidget;
 
@@ -34,6 +36,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAtrributeChangedSignature OnMaxHealthChangedSignature;
+
+	virtual void Die() override;
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
@@ -45,5 +49,11 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
-	
+
+	UPROPERTY(BlueprintReadOnly,Category="Combat")
+	bool bHitReacting = false;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Combat")
+	float BaseWalkSpeed = 250.f;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
+	float LifeSpan = 5.f;
 };

@@ -21,9 +21,9 @@ AAuraCharacterBase::AAuraCharacterBase()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Projectile,ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
 	
-	weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
-	weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
-	weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
+	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
+	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
@@ -31,6 +31,33 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
+
+UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
+{
+	return HitReactMontage;
+}
+
+void AAuraCharacterBase::Die()
+{
+	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端
+	MultiCastHandleDeath();
+}
+
+void AAuraCharacterBase::MultiCastHandleDeath_Implementation()//复制到客户端
+{
+	Weapon->SetSimulatePhysics(true);
+	Weapon->SetEnableGravity(true);
+	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetEnableGravity(true);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic,ECR_Block);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Dissolve();
+}
+
 // Called when the game starts or when spawned
 void AAuraCharacterBase::BeginPlay()
 {
@@ -45,8 +72,8 @@ void AAuraCharacterBase::InitAbilityActorInfo()
 
 FVector AAuraCharacterBase::GetCombatSocketLocation()
 {
-	check(weapon);
-	return weapon->GetSocketLocation(WeaponTipSocketName);
+	check(Weapon);
+	return Weapon->GetSocketLocation(WeaponTipSocketName);
 }
 
 void AAuraCharacterBase::InitializeDefaultAttributes() const
@@ -59,18 +86,35 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
 
 void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass, float Level) const
 {
-		check(IsValid(GetAbilitySystemComponent()));
-    	check(EffectClass);
-    	FGameplayEffectContextHandle GameplayEffectContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
-		GameplayEffectContextHandle.AddSourceObject(this);
-    	FGameplayEffectSpecHandle GameplayEffectSpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(EffectClass,Level,GameplayEffectContextHandle);
-    	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*GameplayEffectSpecHandle.Data.Get(),GetAbilitySystemComponent());
+	check(IsValid(GetAbilitySystemComponent()));
+	check(EffectClass);
+	FGameplayEffectContextHandle GameplayEffectContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	GameplayEffectContextHandle.AddSourceObject(this);
+	FGameplayEffectSpecHandle GameplayEffectSpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(EffectClass,Level,GameplayEffectContextHandle);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*GameplayEffectSpecHandle.Data.Get(),GetAbilitySystemComponent());
 }
 
 void AAuraCharacterBase::AddCharacterAbilities()
 {
 	if (!HasAuthority())return;
 	UAuraAbilitySystemComponent *ASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
-	ASC->AddCharacterAbilities(StartupAbilities);
+	ASC->AddCharacterAbilities(StartupAbilities);//给Aura设置技能而不是Enemy，因为Enemy不需要输入按键（Tag）
+}
+
+void AAuraCharacterBase::Dissolve()
+{
+	if (IsValid(CharacterDissolveMaterialInsDyn))
+	{
+		UMaterialInstanceDynamic *DynamicMaterialIns = UMaterialInstanceDynamic::Create(CharacterDissolveMaterialInsDyn,this);
+		GetMesh()->SetMaterial(0,DynamicMaterialIns);
+		StartDissolveTimeline(DynamicMaterialIns);
+	}
+	if (IsValid(WeaponDissolveMaterialInsDyn))
+	{
+		UMaterialInstanceDynamic *DynamicMaterialIns = UMaterialInstanceDynamic::Create(WeaponDissolveMaterialInsDyn,this);
+		Weapon->SetMaterial(0,DynamicMaterialIns);
+		StartWeaponDissolveTimeline(DynamicMaterialIns);
+	}
+	
 }
 

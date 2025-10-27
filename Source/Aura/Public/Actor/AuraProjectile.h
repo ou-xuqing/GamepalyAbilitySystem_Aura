@@ -19,7 +19,7 @@ class AURA_API AAuraProjectile : public AActor//projectile is actor class
 	
 public:	
 	AAuraProjectile();
-	
+	//在C++中实现了,这些参数都是模板参数
 	UFUNCTION()	
 	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

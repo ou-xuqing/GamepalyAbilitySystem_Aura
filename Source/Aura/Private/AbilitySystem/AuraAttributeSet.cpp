@@ -5,7 +5,10 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "GameFramework/Character.h"
+#include "Interaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/AuraPlayerController.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -72,7 +75,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 	Super::PostGameplayEffectExecute(Data);
 	
 	FEffectProperties Props;
-	SetEffectProperties(Data, Props);
+	SetEffectProperties(Data, Props);//收集本次Effect的Source和Target信息。
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(),0.f,GetMaxHealth()));
@@ -82,12 +85,51 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 	{
 		SetMana(FMath::Clamp(GetMana(),0.f,GetMaxMana()));
 	}
+	if (Data.EvaluatedData.Attribute == GetInComingDamageAttribute())
+	{
+		float LocalInComingDamage = GetInComingDamage();//元属性不是可复制的，只在服务器中使用，通过这个计算出health的该变量然后改变health，此时进行health的复制
+		SetInComingDamage(0.f);
+		if (LocalInComingDamage >0.f)
+		{
+			float NewHealth = GetHealth() - LocalInComingDamage;
+			SetHealth(FMath::Clamp(NewHealth,0.f,GetMaxHealth()));
+			const bool bFatal = GetHealth() <= 0.f;
+			if (bFatal)
+			{
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if (CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+			}else
+			{
+				FGameplayTagContainer TagContainer = FGameplayTagContainer();
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
+				//props在PostEffect时存储（SetEffectProperties）
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);//通过Tag来调用能力（如果能力有该Tag就调用）
+			}
+			
+			if (Props.SourceCharacter != Props.TargetCharacter)
+			{
+				ShowFloatingText(Props,LocalInComingDamage);
+			}
+		}
+	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const struct FEffectProperties& Props, float Number)
+{
+	//获得自己的Controller
+	if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))
+	{	//传递TargetCharacter，给目标生成TextWidget
+		PC->ShowDamageNumber(Number,Props.TargetCharacter);
+	}
 }
 
 void UAuraAttributeSet::SetEffectProperties(const struct FGameplayEffectModCallbackData& Data,
 	FEffectProperties& Props) const
 {
-	//source is cause of effect, target is target of effect
+	//source is cause of effect, target is target of effect。Data是一个结构体，里面包含Effect的各种信息
 	Props.EffectContextHandle = Data.EffectSpec.GetContext();
 	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
 	
@@ -116,6 +158,7 @@ void UAuraAttributeSet::SetEffectProperties(const struct FGameplayEffectModCallb
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
 }
+
 
 void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const
 {

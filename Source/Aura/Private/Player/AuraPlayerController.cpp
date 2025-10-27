@@ -10,6 +10,7 @@
 #include "NavigationSystem.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/AuraEnemyInterface.h"
 
@@ -17,6 +18,15 @@ AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
 	Spline =  CreateDefaultSubobject<USplineComponent>("Spline");
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float Damage, ACharacter* TargetCharacter)
+{
+	UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComClass);//outer：新对象的输出者
+	DamageText->RegisterComponent();//C++中所有组件都要加这一句，如果是在UE中引擎自动加
+	DamageText->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);
+	DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	DamageText->SetDamageText(Damage);
 }
 
 void AAuraPlayerController::BeginPlay()

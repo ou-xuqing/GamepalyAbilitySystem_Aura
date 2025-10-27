@@ -31,12 +31,18 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const{return AttributeSet;}
 
+	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+
+	virtual void Die() override;//在PostAttribute中调用
+
+	UFUNCTION(NetMulticast,Reliable)//广播标记
+	virtual void MultiCastHandleDeath();//广播到客户端
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere,Category = "Combat")
-	TObjectPtr<USkeletalMeshComponent> weapon;
+	TObjectPtr<USkeletalMeshComponent> Weapon;
 
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	FName WeaponTipSocketName;
@@ -65,7 +71,26 @@ protected:
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass, float Level) const;
 
 	void AddCharacterAbilities();
+	
+	//Dissolve material
+
+	void Dissolve();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DisMaterialInsDyn);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DisMaterialInsDyn);
+	
+	UPROPERTY(EditAnywhere,Category= "Dissolve Material")
+	TObjectPtr<UMaterialInstance> CharacterDissolveMaterialInsDyn;
+
+	UPROPERTY(EditAnywhere,Category="Dissolve Material")
+	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInsDyn;
 private:
-	UPROPERTY(EditAnywhere,Category = "Abilities")
+	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditAnywhere,Category = "Combat")
+	TObjectPtr<UAnimMontage> HitReactMontage;
 };

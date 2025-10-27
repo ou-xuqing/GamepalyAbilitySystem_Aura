@@ -19,7 +19,6 @@ public:
 	FGameplayTag Attribute_Primary_Intelligence;
 	FGameplayTag Attribute_Primary_Resilience;
 	FGameplayTag Attribute_Primary_Vigor;
-
 	
 	FGameplayTag Attribute_Secondary_Armor;
 	FGameplayTag Attribute_Secondary_ArmorPenetration;
@@ -39,6 +38,9 @@ public:
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
 
+	FGameplayTag Damage;
+
+	FGameplayTag Effect_HitReact;
 private:
 	static FAuraGameplayTags GameplayTags;
 };

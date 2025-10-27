@@ -71,6 +71,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	TMap<FGameplayTag,TStaticFunPtr<FGameplayAttribute()>> TagsToAttribute;
+
+	//Meta Attributes
+	UPROPERTY(BlueprintReadOnly,Category="Meta Attributes")
+	FGameplayAttributeData InComingDamage;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,InComingDamage);
 	
 	//Vital Attributes
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_Health,Category="Vital Attributes")
@@ -189,4 +194,6 @@ public:
 	
 private:
 	void SetEffectProperties(const struct FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
+
+	void ShowFloatingText(const struct FEffectProperties& Props,float Number);
 };

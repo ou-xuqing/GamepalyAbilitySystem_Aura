@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameplayTagContainer.h"
 #include "Components/SplineComponent.h"
+#include "UI/Widget/DamageTextComponent.h"
 #include "AuraPlayerController.generated.h"
 
 class UAuraAbilitySystemComponent;
@@ -24,11 +25,17 @@ class AURA_API AAuraPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	AAuraPlayerController();
+
+	UFUNCTION(Client,Reliable)
+	void ShowDamageNumber(float Damage,ACharacter* TargetCharacter);
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void PlayerTick(float DeltaTime) override;
+	
+	UPROPERTY(EditDefaultsOnly,Category="DamageTextWidget")
+	TSubclassOf<UDamageTextComponent> DamageTextComClass;
 private:
 	UPROPERTY(EditAnywhere,Category = "Input")
 	TObjectPtr<UInputMappingContext> AuraContext;
