@@ -143,6 +143,22 @@ public:
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_MaxMana,Category="Secondary Attributes")
 	FGameplayAttributeData MaxMana;
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, MaxMana);
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_Resilience_Fire,Category="Secondary Attributes")
+	FGameplayAttributeData Resilience_Fire;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,Resilience_Fire);
+	
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_Resilience_Lightning,Category="Secondary Attributes")
+	FGameplayAttributeData Resilience_Lightning;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,Resilience_Lightning);
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_Resilience_Arcane,Category="Secondary Attributes")
+	FGameplayAttributeData Resilience_Arcane;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,Resilience_Arcane);
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing= OnRep_Resilience_Physical,Category="Secondary Attributes")
+	FGameplayAttributeData Resilience_Physical;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,Resilience_Physical);
 	
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldHealth)const;
@@ -191,9 +207,20 @@ public:
 
 	UFUNCTION()
 	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)const;
+
+	UFUNCTION()
+	void OnRep_Resilience_Fire(const FGameplayAttributeData& OldResilience_Fire)const;
+
+	UFUNCTION()
+	void OnRep_Resilience_Lightning(const FGameplayAttributeData& OldResilience_Lightning)const;
 	
+	UFUNCTION()
+	void OnRep_Resilience_Arcane(const FGameplayAttributeData& OldResilience_Arcane)const;
+	
+	UFUNCTION()
+	void OnRep_Resilience_Physical(const FGameplayAttributeData& OldResilience_Physical)const;
 private:
 	void SetEffectProperties(const struct FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
 
-	void ShowFloatingText(const struct FEffectProperties& Props,float Number);
+	void ShowFloatingText(const struct FEffectProperties& Props,float Number,bool IsBlocked,bool IsCritical);
 };

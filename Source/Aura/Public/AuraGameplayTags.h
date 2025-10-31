@@ -31,6 +31,11 @@ public:
 	FGameplayTag Attribute_Secondary_MaxHealth;
 	FGameplayTag Attribute_Secondary_MaxMana;
 
+	FGameplayTag Attribute_Resilience_Fire;
+	FGameplayTag Attribute_Resilience_Lightning;
+	FGameplayTag Attribute_Resilience_Arcane;
+	FGameplayTag Attribute_Resilience_Physical;
+	
 	FGameplayTag InputTag_LMB;
 	FGameplayTag InputTag_RMB;
 	FGameplayTag InputTag_1;
@@ -39,7 +44,13 @@ public:
 	FGameplayTag InputTag_4;
 
 	FGameplayTag Damage;
-
+	FGameplayTag Damage_Fire;
+	FGameplayTag Damage_Lightning;
+	FGameplayTag Damage_Arcane;
+	FGameplayTag Damage_Physical;
+	
+	TMap<FGameplayTag,FGameplayTag> DamageTypesToResilience;
+	
 	FGameplayTag Effect_HitReact;
 private:
 	static FAuraGameplayTags GameplayTags;

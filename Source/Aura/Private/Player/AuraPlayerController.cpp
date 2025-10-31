@@ -20,13 +20,18 @@ AAuraPlayerController::AAuraPlayerController()
 	Spline =  CreateDefaultSubobject<USplineComponent>("Spline");
 }
 
-void AAuraPlayerController::ShowDamageNumber_Implementation(float Damage, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(float Damage, ACharacter* TargetCharacter, bool bBlocked,bool bCriticalHit)
 {
-	UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComClass);//outer：新对象的输出者
-	DamageText->RegisterComponent();//C++中所有组件都要加这一句，如果是在UE中引擎自动加
-	DamageText->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);
-	DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	DamageText->SetDamageText(Damage);
+	//只在客户端上显示
+	if (IsValid(TargetCharacter) && IsLocalController())
+	{
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComClass);//outer：新对象的输出者
+		DamageText->RegisterComponent();//C++中所有组件都要加这一句，如果是在UE中引擎自动加
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		DamageText->SetDamageText(Damage,bBlocked,bCriticalHit);//蓝图事件
+	}
+
 }
 
 void AAuraPlayerController::BeginPlay()

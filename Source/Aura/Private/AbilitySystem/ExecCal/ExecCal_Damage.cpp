@@ -4,9 +4,10 @@
 #include "AbilitySystem/ExecCal/ExecCal_Damage.h"
 
 #include "AbilitySystemComponent.h"
+#include "AuraAbilityTypes.h"
 #include "AuraGameplayTags.h"
-#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Interaction/CombatInterface.h"
 
 struct  AuraDamageStatic
@@ -17,6 +18,14 @@ struct  AuraDamageStatic
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitChance);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitResistance);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Resilience_Fire);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Resilience_Lightning);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Resilience_Arcane);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Resilience_Physical);
+
+	TMap<FGameplayTag,FGameplayEffectAttributeCaptureDefinition> TagToCaptureDefs;
+	bool bIsInitTagToCaptureDefs;
+	
 	AuraDamageStatic()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,Armor,Target,false);//敌人受到攻击所以要拿去敌人的护甲值来计算
@@ -25,14 +34,37 @@ struct  AuraDamageStatic
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,CriticalHitChance,Source,false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,CriticalHitDamage,Source,false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,CriticalHitResistance,Target,false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,Resilience_Fire,Target,false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,Resilience_Lightning,Target,false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,Resilience_Arcane,Target,false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet,Resilience_Physical,Target,false);
+		bIsInitTagToCaptureDefs = false;
+	}
+//可能是bug来源.在FDamageStatics构造函数里获取Tag实际比Tag注册要早（可能是由于UExecCalc_Damage的构造在CDO阶段，比AuraAssetManager的StartInitialLoading要早，这块我还不太懂）, 所以像视频中一样会导致key为空
+	void InitTagToCaptureDefs()
+	{
+		const FAuraGameplayTags& AuraGameplayTags = FAuraGameplayTags::Get();
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_Armor,ArmorDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_ArmorPenetration,ArmorPenetrationDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_BlockChance,BlockChanceDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_CriticalHitChance,CriticalHitChanceDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_CriticalHitDamage,CriticalHitDamageDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Secondary_CriticalHitResistance,CriticalHitResistanceDef);
+		
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Resilience_Fire,Resilience_FireDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Resilience_Lightning,Resilience_LightningDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Resilience_Arcane,Resilience_ArcaneDef);
+		TagToCaptureDefs.Add(AuraGameplayTags.Attribute_Resilience_Physical,Resilience_PhysicalDef);
+		bIsInitTagToCaptureDefs = true;
 	}
 };
 
-static const AuraDamageStatic DamageStatic()
+static AuraDamageStatic& DamageStatic()
 {
 	static AuraDamageStatic DamageStatic;
 	return DamageStatic;
 }
+
 
 UExecCal_Damage::UExecCal_Damage()
 {
@@ -43,6 +75,10 @@ UExecCal_Damage::UExecCal_Damage()
 	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitChanceDef);
 	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitDamageDef);
 	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitResistanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().Resilience_FireDef);
+	RelevantAttributesToCapture.Add(DamageStatic().Resilience_LightningDef);
+	RelevantAttributesToCapture.Add(DamageStatic().Resilience_ArcaneDef);
+	RelevantAttributesToCapture.Add(DamageStatic().Resilience_PhysicalDef);
 }
 
 void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -66,8 +102,25 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	EvaluateParameters.TargetTags = TargetTags;
 
 	UCharacterClassInfo* CharacterClassInfo = UAuraAbilitySystemLibrary::GetCharacterClassInfo(SourceAvatar);
+	if (!DamageStatic().bIsInitTagToCaptureDefs)
+	{
+		DamageStatic().InitTagToCaptureDefs();
+	}
 	
-	float Damage = EffectSpec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);//通过Tag取出相应Ability的伤害,在Effect创建时Tag与Value进行的绑定
+	float Damage = 0.f;
+	//key:DamageType Value:ResilienceType
+	for (auto& Pair:FAuraGameplayTags::Get().DamageTypesToResilience)//一种技能可能会有多种属性伤害
+	{
+		float Resistance = 0.f;
+		//通过value找到ResilienceDef，获取属性值。
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().TagToCaptureDefs[Pair.Value],EvaluateParameters,Resistance);
+		Resistance = FMath::Clamp(Resistance,0.f,80.f);
+
+		float DamageTypeValue = EffectSpec.GetSetByCallerMagnitude(Pair.Key);//通过Tag取出相应Ability的伤害,在Effect创建时Tag与Value进行的绑定
+		//百分比减伤
+		DamageTypeValue *= (100.f - Resistance) /100.f;
+		Damage += DamageTypeValue;
+	}
 	
 	float TargetBlockChane = 0.f;
 	//取出相应属性的值
@@ -77,7 +130,9 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	//Block
 	const bool bBlocked = FMath::RandRange(1,100) < TargetBlockChane;
 	Damage = bBlocked ? Damage * 0.5f : Damage;
-
+	FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
+	UAuraAbilitySystemLibrary::SetBlocked(EffectContextHandle,bBlocked);
+	
 	//Critical
 	if (!bBlocked)
 	{
@@ -94,6 +149,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 		//暴击判定
 		const bool bCriticalHit = FMath::RandRange(1,100) < (SourceCriticalChance - TargetCriticalHitResistance * CriticalHitResistanceCurve->Eval(TargetCombatInterface->GetPlayerLevel()));
 		Damage = bCriticalHit ? 2.f * Damage + SourceCriticalDamage : Damage;
+		UAuraAbilitySystemLibrary::SetCriticalHit(EffectContextHandle,bCriticalHit);
 	}
 	
 	float TargetArmor = 0.f;

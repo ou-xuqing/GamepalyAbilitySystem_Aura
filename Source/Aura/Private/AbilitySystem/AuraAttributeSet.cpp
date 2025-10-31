@@ -4,6 +4,7 @@
 #include "Aura/Public/AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -29,6 +30,10 @@ UAuraAttributeSet::UAuraAttributeSet()
 	TagsToAttribute.Add(GameplayTags.Attribute_Secondary_ManaRegeneration, GetManaRegenerationAttribute);
 	TagsToAttribute.Add(GameplayTags.Attribute_Secondary_MaxHealth, GetMaxHealthAttribute);
 	TagsToAttribute.Add(GameplayTags.Attribute_Secondary_MaxMana, GetMaxManaAttribute);
+	TagsToAttribute.Add(GameplayTags.Attribute_Resilience_Fire,GetResilience_FireAttribute);
+	TagsToAttribute.Add(GameplayTags.Attribute_Resilience_Lightning,GetResilience_LightningAttribute);
+	TagsToAttribute.Add(GameplayTags.Attribute_Resilience_Arcane,GetResilience_ArcaneAttribute);
+	TagsToAttribute.Add(GameplayTags.Attribute_Resilience_Physical,GetResilience_PhysicalAttribute);
 }
 
 void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -54,7 +59,10 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,ManaRegeneration,COND_None,REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,MaxHealth,COND_None,REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,MaxMana,COND_None,REPNOTIFY_Always);
-	
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Resilience_Fire,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Resilience_Lightning,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Resilience_Arcane,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Resilience_Physical,COND_None,REPNOTIFY_Always);
 }
 
 void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -96,7 +104,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 			const bool bFatal = GetHealth() <= 0.f;
 			if (bFatal)
 			{
-				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);//通过接口调用减少耦合
 				if (CombatInterface)
 				{
 					CombatInterface->Die();
@@ -109,20 +117,23 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);//通过Tag来调用能力（如果能力有该Tag就调用）
 			}
 			
-			if (Props.SourceCharacter != Props.TargetCharacter)
+			if (Props.SourceCharacter != Props.TargetCharacter)//显示伤害文字
 			{
-				ShowFloatingText(Props,LocalInComingDamage);
+				//格挡或者暴击会显示不同的颜色
+				bool IsBlocked = UAuraAbilitySystemLibrary::IsBlocked(Props.EffectContextHandle);
+				bool IsCritical = UAuraAbilitySystemLibrary::IsCritical(Props.EffectContextHandle);
+				ShowFloatingText(Props,LocalInComingDamage,IsBlocked,IsCritical);
 			}
 		}
 	}
 }
 
-void UAuraAttributeSet::ShowFloatingText(const struct FEffectProperties& Props, float Number)
+void UAuraAttributeSet::ShowFloatingText(const struct FEffectProperties& Props, float Number,bool IsBlocked,bool IsCritical)
 {
 	//获得自己的Controller
-	if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))
+	if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
 	{	//传递TargetCharacter，给目标生成TextWidget
-		PC->ShowDamageNumber(Number,Props.TargetCharacter);
+		PC->ShowDamageNumber(Number,Props.TargetCharacter,IsBlocked,IsCritical);
 	}
 }
 
@@ -178,6 +189,26 @@ void UAuraAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
 void UAuraAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,MaxMana,OldMaxMana);
+}
+
+void UAuraAttributeSet::OnRep_Resilience_Fire(const FGameplayAttributeData& OldResilience_Fire) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,Resilience_Fire,OldResilience_Fire);
+}
+
+void UAuraAttributeSet::OnRep_Resilience_Lightning(const FGameplayAttributeData& OldResilience_Lightning) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,Resilience_Lightning,OldResilience_Lightning);
+}
+
+void UAuraAttributeSet::OnRep_Resilience_Arcane(const FGameplayAttributeData& OldResilience_Arcane) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,Resilience_Arcane,OldResilience_Arcane);
+}
+
+void UAuraAttributeSet::OnRep_Resilience_Physical(const FGameplayAttributeData& OldResilience_Physical) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,Resilience_Physical,OldResilience_Physical);
 }
 
 void UAuraAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldStrength) const

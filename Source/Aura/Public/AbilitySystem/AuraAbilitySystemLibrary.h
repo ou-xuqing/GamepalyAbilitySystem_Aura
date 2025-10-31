@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "Data/CharacterClassInfo.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AuraAbilitySystemLibrary.generated.h"
@@ -33,4 +34,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAttributes")
 	static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
+
+	//蓝图或者PostAttribute中调用Get
+	UFUNCTION(BlueprintPure , Category="AuraAbilitySystemLibrary|Effects")
+	static bool IsBlocked(const FGameplayEffectContextHandle& EffectContextHandle);
+
+	UFUNCTION(BlueprintPure , Category="AuraAbilitySystemLibrary|Effects")
+	static bool IsCritical(const FGameplayEffectContextHandle& EffectContextHandle);
+
+	//ExecCal_Damage中调用Set
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图是不建议有set的，最好在C++中set，但是本次选择在蓝图中暴露set
+	static void SetBlocked(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bBlocked);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图中未加const的参数默认为输出，所以要加上UPARAM来标志为输入
+	static void SetCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bCriticalHit);
 };

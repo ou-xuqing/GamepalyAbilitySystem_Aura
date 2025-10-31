@@ -54,7 +54,11 @@ void AAuraEnemy:: BeginPlay()
 	Super::BeginPlay();
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	InitAbilityActorInfo();
-	UAuraAbilitySystemLibrary::GiveAbilities(this,AbilitySystemComponent);//赋予能力
+	if (HasAuthority())
+	{
+		UAuraAbilitySystemLibrary::GiveAbilities(this,AbilitySystemComponent);//赋予能力,在服务器调用
+	}
+	
 	 if(UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthWidget->GetUserWidgetObject()))
 	 {
 	 	AuraUserWidget->SetWidgetController(this);
@@ -94,10 +98,15 @@ void AAuraEnemy::HitReactTagChanged(FGameplayTag CallbackTag, int32 NewCount)
 
 void AAuraEnemy::InitAbilityActorInfo()//初始化ASC的Actor信息
 {
+	//客户端和服务器都要调用
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
 	UAuraAbilitySystemComponent* AuraAsc = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraAsc->AbilityActorInfoSet();
-	InitializeDefaultAttributes();
+	if (HasAuthority())
+	{
+		//需要用到GetGameMode，但其只能在服务器调用
+		InitializeDefaultAttributes();
+	}
 }
 
 void AAuraEnemy::InitializeDefaultAttributes() const//赋予属性

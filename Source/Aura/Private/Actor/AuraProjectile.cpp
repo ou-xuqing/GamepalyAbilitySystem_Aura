@@ -39,15 +39,24 @@ void AAuraProjectile::BeginPlay()
 	SetLifeSpan(LifeSpan);
 	Super::BeginPlay();
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
-	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound,GetRootComponent());
+	if (LoopingSoundComponent) LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound,GetRootComponent());
 }
 
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	//DamageSpecHandle只会在服务器中设置所以要检查其有效性。后面和otherActor比较是为了防止火球打到自己
+	if (DamageSpecHandle.Data.IsValid() && DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser() == OtherActor)
+	{
+		return;
+	}
+	//和教程不一致，但是可以修改火球刚出生就出现爆炸特效的bug，不懂
+	if (DamageSpecHandle.Data == nullptr) return;
+	
 	UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-	LoopingSoundComponent->Stop();
+	if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+	
 	if (HasAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
@@ -64,11 +73,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 void AAuraProjectile::Destroyed()
 {
+	//在客户端未发生碰撞但已经销毁则发出声音和特效
 	if (!bHit&&!HasAuthority())
 	{
 		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-		LoopingSoundComponent->Stop();
+		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
 	}
 	Super::Destroyed();
 	

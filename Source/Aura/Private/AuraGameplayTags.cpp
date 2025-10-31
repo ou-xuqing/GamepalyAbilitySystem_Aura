@@ -77,7 +77,39 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Damage"),
 	FString("Damage"));
+	GameplayTags.Damage_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Damage.Fire"),
+	FString("Fire Damage Type"));
+	GameplayTags.Damage_Lightning = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Damage.Lightning"),
+	FString("Lightning Damage Type"));
+	GameplayTags.Damage_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Damage.Arcane"),
+	FString("Arcane Damage Type"));
+	GameplayTags.Damage_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Damage.Physical"),
+	FString("Physical Damage Type"));
 
+	//Damage Resilience
+	GameplayTags.Attribute_Resilience_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Attributes.Resilience.Fire"),
+	FString("Fire Resilience"));
+	GameplayTags.Attribute_Resilience_Lightning = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Attributes.Resilience.Lightning"),
+	FString("Lightning Resilience"));
+	GameplayTags.Attribute_Resilience_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Attributes.Resilience.Arcane"),
+	FString("Arcane Resilience"));
+	GameplayTags.Attribute_Resilience_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Attributes.Resilience.Physical"),
+	FString("Physical Resilience"));
+
+	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Fire,GameplayTags.Attribute_Resilience_Fire);
+	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Lightning,GameplayTags.Attribute_Resilience_Lightning);
+	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Arcane,GameplayTags.Attribute_Resilience_Arcane);
+	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Physical,GameplayTags.Attribute_Resilience_Physical);
+
+	
 	//Effect Tags
 	GameplayTags.Effect_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Effect.HitReact"),
