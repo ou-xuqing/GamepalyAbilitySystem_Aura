@@ -53,7 +53,10 @@ protected:
 	void OnEndOverlap(AActor* TargetActor);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
-	bool bDestroyOnEffectRemoval = false;
+	bool bDestroyOnEffectApplication = false;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
+	bool bIsApplyToEnemies = false;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
 	TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;
@@ -75,7 +78,7 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
 	EEffectRemovalPolicy InfiniteEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
-
+	
 	//infinite的效果需要在重叠结束时取消作用，使用Map将infinite效果与ASC对应存起来，重叠结束时将他们解绑并从Map中删除
 	TMap<FActiveGameplayEffectHandle, UAbilitySystemComponent*> ActiveEffectHandles;
 

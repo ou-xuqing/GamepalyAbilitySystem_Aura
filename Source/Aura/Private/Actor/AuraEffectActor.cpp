@@ -16,6 +16,7 @@ AAuraEffectActor::AAuraEffectActor()
 
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor,TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
+	if (!bIsApplyToEnemies && TargetActor->ActorHasTag("Enemy")) return;
 	UAbilitySystemComponent *TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	if (TargetASC==nullptr)return;
 	check(GameplayEffectClass);
@@ -30,10 +31,16 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor,TSubclassOf<UGame
 	{
 		ActiveEffectHandles.Add(ActiveEffectHandle,TargetASC);
 	}
+	//不在蓝图中调用Destroy，直接将其合并到AETT函数中。
+	if (!bIsInfinite && bDestroyOnEffectApplication)
+	{
+		Destroy();
+	}
 }
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+	if (!bIsApplyToEnemies && TargetActor->ActorHasTag("Enemy")) return;
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
 		ApplyEffectToTarget(TargetActor,InstantGameplayEffectClass);
@@ -50,6 +57,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
+	if (!bIsApplyToEnemies && TargetActor->ActorHasTag("Enemy")) return;
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
 		ApplyEffectToTarget(TargetActor,InstantGameplayEffectClass);
@@ -62,6 +70,7 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 	{
 		ApplyEffectToTarget(TargetActor,InfiniteGameplayEffectClass);
 	}
+	//结束重叠时取消效果
 	if (InfiniteEffectRemovalPolicy==EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
 		UAbilitySystemComponent *TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);

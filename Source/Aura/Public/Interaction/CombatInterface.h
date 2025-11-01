@@ -27,8 +27,11 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	void UpdateFacingTarget(const FVector& TargetLocation);
-
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) //使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
+	/**
+	 * 使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
+	 * 若在蓝图中实现则优先级大于C++实现
+	 */
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
 	UAnimMontage* GetHitReactMontage();
 
 	virtual void Die() = 0;

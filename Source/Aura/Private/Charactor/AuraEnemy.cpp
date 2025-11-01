@@ -8,6 +8,8 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Aura/Public/AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -19,6 +21,14 @@ AAuraEnemy::AAuraEnemy()
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	//关闭直接使用控制器旋转
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+	//使用运动组件来旋转，因为可以调整旋转速度
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f,360.f,0.f);
 	
 	HealthWidget = CreateDefaultSubobject<UWidgetComponent>("HealthWidget");
 	HealthWidget->SetupAttachment(GetRootComponent());
@@ -41,6 +51,26 @@ void AAuraEnemy::UnHighlightActor()
 int32 AAuraEnemy::GetPlayerLevel()
 {
 	return Level;
+}
+
+void AAuraEnemy::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	//AI只在服务器上运行
+	if (!HasAuthority()) return;
+	AuraAIController = Cast<AAuraAIController>(NewController);
+	//固定写法，将AC中的blackboard通过BT中的BBA初始化
+	AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
+	AuraAIController->RunBehaviorTree(BehaviorTree);
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"),false);
+	if (CharacterClass != ECharacterClass::Warrior)
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangerAttacker"),true);
+	}else
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangerAttacker"),false);
+	}
 }
 
 void AAuraEnemy::Die()
@@ -94,6 +124,7 @@ void AAuraEnemy::HitReactTagChanged(FGameplayTag CallbackTag, int32 NewCount)
 {
 	bHitReacting = NewCount > 0;//根据tag数量看是否被击中
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f:BaseWalkSpeed;//被击中将移速置为0
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"),bHitReacting);
 }
 
 void AAuraEnemy::InitAbilityActorInfo()//初始化ASC的Actor信息

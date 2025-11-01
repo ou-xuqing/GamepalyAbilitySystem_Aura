@@ -136,8 +136,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				{
 					Spline->AddSplinePoint(PointLoc,ESplineCoordinateSpace::World);
 				}
-				if (!NavPath->PathPoints.IsEmpty()) CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];//防止CachedDestination无法到达
-				bAutoRunning = true;
+				if (NavPath->PathPoints.Num()>0)
+				{
+					if (!NavPath->PathPoints.IsEmpty()) CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];//防止CachedDestination无法到达
+					bAutoRunning = true;
+				}
 			}
 		}
 		FollowTime = 0.f;

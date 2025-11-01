@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "AI/AuraAIController.h"
 #include "Charactor/AuraCharacterBase.h"
 #include "Interaction/AuraEnemyInterface.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
@@ -26,6 +27,8 @@ public:
 	/*CombatInterface */
 	virtual int32 GetPlayerLevel() override;
 
+	virtual void PossessedBy(AController* NewController) override;
+	
 	void HitReactTagChanged(FGameplayTag CallbackTag,int32 NewCount);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
@@ -56,4 +59,10 @@ protected:
 	float BaseWalkSpeed = 250.f;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
 	float LifeSpan = 5.f;
+
+	UPROPERTY(EditAnywhere,Category="AI")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	UPROPERTY()
+	TObjectPtr<AAuraAIController> AuraAIController;
 };
