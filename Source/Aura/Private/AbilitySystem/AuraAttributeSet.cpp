@@ -134,6 +134,12 @@ void UAuraAttributeSet::ShowFloatingText(const struct FEffectProperties& Props, 
 	if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
 	{	//传递TargetCharacter，给目标生成TextWidget
 		PC->ShowDamageNumber(Number,Props.TargetCharacter,IsBlocked,IsCritical);
+		return;
+	}
+	//Enemy攻击时，SourceCharacter为Enemy，它没有AuraPlayerController，所以要用Target来生成
+	if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))
+	{	//传递TargetCharacter，给目标生成TextWidget
+		PC->ShowDamageNumber(Number,Props.TargetCharacter,IsBlocked,IsCritical);
 	}
 }
 

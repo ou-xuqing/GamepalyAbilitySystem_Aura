@@ -20,13 +20,13 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGame
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability,1);
 		if (const UAuraGameplayAbility *AuraGameplayAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
 		{
-			AbilitySpec.GetDynamicSpecSourceTags().AddTag(AuraGameplayAbility->StartupInputTag);
+			AbilitySpec.GetDynamicSpecSourceTags().AddTag(AuraGameplayAbility->StartupInputTag);//让能力和蓝图GA中的tag进行绑定
 			GiveAbility(AbilitySpec);
 		}
 	}
 }
 
-void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
+void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)//通过输入的tag来确定是哪个能力
 {
 	if (!InputTag.IsValid())return;
 	for (FGameplayAbilitySpec &AbilitySpec : GetActivatableAbilities())

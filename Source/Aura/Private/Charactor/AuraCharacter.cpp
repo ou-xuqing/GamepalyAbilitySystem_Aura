@@ -23,7 +23,7 @@ AAuraCharacter::AAuraCharacter()
 	bUseControllerRotationRoll = false;
 }
 
-void AAuraCharacter::PossessedBy(AController* NewController)
+void AAuraCharacter::PossessedBy(AController* NewController)//在此时，PC已经设置完毕
 {
 	//work in server
 	Super::PossessedBy(NewController);

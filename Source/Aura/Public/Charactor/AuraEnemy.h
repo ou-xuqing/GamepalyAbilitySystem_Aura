@@ -24,6 +24,8 @@ public:
 	/* EnemyInterface */
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
+	virtual AActor* GetCombatTarget_Implementation() override;
 	/*CombatInterface */
 	virtual int32 GetPlayerLevel() override;
 
@@ -41,6 +43,7 @@ public:
 	FOnAtrributeChangedSignature OnMaxHealthChangedSignature;
 
 	virtual void Die() override;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
@@ -59,7 +62,10 @@ protected:
 	float BaseWalkSpeed = 250.f;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
 	float LifeSpan = 5.f;
-
+	
+	UPROPERTY(BlueprintReadWrite,Category="Combat")
+	AActor* CombatTarget;
+	
 	UPROPERTY(EditAnywhere,Category="AI")
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 

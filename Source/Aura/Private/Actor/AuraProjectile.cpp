@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Aura/Aura.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
@@ -50,9 +51,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		return;
 	}
-	//和教程不一致，但是可以修改火球刚出生就出现爆炸特效的bug，不懂(也就是说在客户端不进行碰撞检测，等到destory时，发出爆炸声音和特效（可能）)
+	//和教程不一致，但是可以修改火球刚出生就出现爆炸特效的bug，不懂(也就是说在客户端不进行碰撞检测，等到destroy时，发出爆炸声音和特效（可能）)
 	if (DamageSpecHandle.Data == nullptr) return;
-	
+	if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser(),OtherActor))
+	{
+		return;
+	}
 	UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
 	if (LoopingSoundComponent) LoopingSoundComponent->Stop();

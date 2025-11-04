@@ -3,8 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
+
+USTRUCT(BlueprintType)
+struct FTaggedMontage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	UAnimMontage* Montage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	FGameplayTag MontageTag;
+};
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI,BlueprintType)
@@ -23,16 +36,30 @@ class AURA_API ICombatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual int32 GetPlayerLevel();
-	virtual FVector GetCombatSocketLocation();
-
-	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
-	void UpdateFacingTarget(const FVector& TargetLocation);
 	/**
-	 * 使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
-	 * 若在蓝图中实现则优先级大于C++实现
-	 */
+	* 使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
+	* 若在蓝图中实现则优先级大于C++实现
+	*/
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)//在蓝图中调用motionwraping的函数来实现
+	void UpdateFacingTarget(const FVector& TargetLocation);
+
+	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
+	FVector GetCombatSocketLocation(const FGameplayTag& MontageTag);
+	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	bool IsDead() const;
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	AActor* GetAvator();
+	
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
 	UAnimMontage* GetHitReactMontage();
+	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	TArray<FTaggedMontage> GetAttackMontage();
 
+	
+	
 	virtual void Die() = 0;
 };

@@ -24,6 +24,10 @@ struct FCharacterClassDefaultInfo
 
 	UPROPERTY(EditDefaultsOnly,Category="class Defaults")
 	TSubclassOf<UGameplayEffect> PrimaryAttributes;
+
+	UPROPERTY(EditDefaultsOnly,Category="class Defaults")//每种职业的攻击方式不同
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	
 };
 
 /**

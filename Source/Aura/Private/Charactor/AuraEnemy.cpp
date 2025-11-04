@@ -48,6 +48,16 @@ void AAuraEnemy::UnHighlightActor()
 	Weapon->SetRenderCustomDepth(false);
 }
 
+void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)
+{
+	CombatTarget = InCombatTarget;
+}
+
+AActor* AAuraEnemy::GetCombatTarget_Implementation()
+{
+	return CombatTarget;
+}
+
 int32 AAuraEnemy::GetPlayerLevel()
 {
 	return Level;
@@ -86,7 +96,7 @@ void AAuraEnemy:: BeginPlay()
 	InitAbilityActorInfo();
 	if (HasAuthority())
 	{
-		UAuraAbilitySystemLibrary::GiveAbilities(this,AbilitySystemComponent);//赋予能力,在服务器调用
+		UAuraAbilitySystemLibrary::GiveAbilities(this,AbilitySystemComponent,CharacterClass);//赋予能力,在服务器调用
 	}
 	
 	 if(UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthWidget->GetUserWidgetObject()))
@@ -124,7 +134,11 @@ void AAuraEnemy::HitReactTagChanged(FGameplayTag CallbackTag, int32 NewCount)
 {
 	bHitReacting = NewCount > 0;//根据tag数量看是否被击中
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f:BaseWalkSpeed;//被击中将移速置为0
-	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"),bHitReacting);
+	if (AuraAIController&&AuraAIController->GetBlackboardComponent())//AuraAIController只在服务器有效
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"),bHitReacting);
+	}
+	
 }
 
 void AAuraEnemy::InitAbilityActorInfo()//初始化ASC的Actor信息

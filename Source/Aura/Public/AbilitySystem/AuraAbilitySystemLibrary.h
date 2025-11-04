@@ -30,7 +30,7 @@ public:
 	static void InitializeDefaultAttributes(const UObject* WorldContextObject,ECharacterClass CharacterClass,float Level,UAbilitySystemComponent* Asc);
 
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAttributes")
-	static void GiveAbilities(const UObject* WorldContextObject,UAbilitySystemComponent* Asc);
+	static void GiveAbilities(const UObject* WorldContextObject,UAbilitySystemComponent* Asc,ECharacterClass CharacterClass);
 
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAttributes")
 	static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
@@ -48,4 +48,11 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图中未加const的参数默认为输出，所以要加上UPARAM来标志为输入
 	static void SetCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bCriticalHit);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void GetLiversWithinRadius(const UObject* WorldContextObject,TArray<AActor*>& OutOverlappingActor,const TArray<AActor*>& ActorsToIgnore,float Radius,FVector SphereOrigin);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static bool IsNotFriend(AActor* FirstActor,AActor* SeconderActor);
+
 };
