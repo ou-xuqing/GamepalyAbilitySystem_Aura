@@ -8,6 +8,7 @@
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UNiagaraSystem;
 class UWidgetComponent;
 class UGameplayAbility;
 class UAuraGameplayAbility;
@@ -34,7 +35,7 @@ public:
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
 	//CombatInterface
-	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
 	
 	virtual bool IsDead_Implementation() const override;
 
@@ -44,6 +45,10 @@ public:
 	
 	virtual void Die() override;//在PostAttribute中调用
 
+	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
+
+	virtual FTaggedMontage GetTaggedMontagebyTag_Implementation(const FGameplayTag& MontageTag) override;
+	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
 	//CombatInterface
@@ -69,6 +74,8 @@ protected:
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	FName RightHandSocketName;
 	
+	UPROPERTY(EditAnywhere,Category = "Combat")
+	FName TailSocketName;
 	
 	UPROPERTY()
 	bool bIsDead = false;
@@ -111,6 +118,12 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category="Dissolve Material")
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInsDyn;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UNiagaraSystem* BloodEffect;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	USoundBase* DeathSound;
 private:
 	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;

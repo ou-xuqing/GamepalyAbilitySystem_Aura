@@ -18,7 +18,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	FActiveGameplayEffectHandle GrantedTag();
-	
+
+	//GA蓝图调用这个GE是为了给目标授予Tag，通过这个Tag将目标的移动速度变为0（受到攻击禁止移动）
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="HitReacting")
 	TSubclassOf<UGameplayEffect> HitReactEffectClass;
 };

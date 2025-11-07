@@ -8,6 +8,7 @@
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()//因为该处GameplayTag与AuraCharacter有关，所以在AuraCharacter的InitAbilityActorInfo中调用
 {
+	//GE应用时要复制到客户端（该委托只会在服务器中被调用）
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this,&UAuraAbilitySystemComponent::ClientEffectApplied);//固定写法，将EffectApplied方法绑定到OnGameplayEffectAppliedDelegateToSelf委托
 	//FGameplayTag Secondary_Armor =  FAuraGameplayTags::Get().Attribute_Secondary_Armor;
 	//GEngine->AddOnScreenDebugMessage(-1,4.f,FColor::Blue,FString::Printf(TEXT("Tag: %s"),*Secondary_Armor.ToString()));

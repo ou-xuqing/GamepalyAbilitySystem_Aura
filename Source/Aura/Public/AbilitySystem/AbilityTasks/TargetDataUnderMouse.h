@@ -7,7 +7,7 @@
 #include "TargetDataUnderMouse.generated.h"
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseTargetDataSignature,const FGameplayAbilityTargetDataHandle&,DataHandle);
 /**
- * 
+ * GA是一帧内完成的，使用GATask可以实现异步逻辑（）
  */
 UCLASS()
 class AURA_API UTargetDataUnderMouse : public UAbilityTask

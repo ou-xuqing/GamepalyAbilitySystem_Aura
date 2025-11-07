@@ -47,20 +47,23 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//DamageSpecHandle只会在服务器中设置所以要检查其有效性。后面和otherActor比较是为了防止火球打到自己
-	if (DamageSpecHandle.Data.IsValid() && DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser()== OtherActor)
+	if (!DamageSpecHandle.Data.IsValid() || DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser()== OtherActor)
 	{
 		return;
 	}
 	//和教程不一致，但是可以修改火球刚出生就出现爆炸特效的bug，不懂(也就是说在客户端不进行碰撞检测，等到destroy时，发出爆炸声音和特效（可能）)
-	if (DamageSpecHandle.Data == nullptr) return;
+	//if (DamageSpecHandle.Data == nullptr) return;之前上面是&&且没有！，改成||后包含了这句
 	if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser(),OtherActor))
 	{
 		return;
 	}
-	UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-	if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-	
+	if (!bHit)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
+		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+		bHit = true;
+	}
 	if (HasAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
@@ -83,6 +86,7 @@ void AAuraProjectile::Destroyed()
 		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
 		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+		bHit = true;
 	}
 	Super::Destroyed();
 }

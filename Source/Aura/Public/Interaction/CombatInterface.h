@@ -7,6 +7,8 @@
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
+class UNiagaraSystem;
+
 USTRUCT(BlueprintType)
 struct FTaggedMontage
 {
@@ -15,8 +17,14 @@ struct FTaggedMontage
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	UAnimMontage* Montage = nullptr;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)//用来标志Montage及相应声音
 	FGameplayTag MontageTag;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)//可能会有多种用武器的攻击方式，原本的纯montageTag不能区分，所以将获取武器插槽位置单独抽离出来生成tag
+	FGameplayTag CombatSocketTag;
+	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	USoundBase* ImpactSound = nullptr;
 };
 
 // This class does not need to be modified.
@@ -35,6 +43,12 @@ class AURA_API ICombatInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	TArray<FTaggedMontage> GetAttackMontage();
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	FTaggedMontage GetTaggedMontagebyTag(const FGameplayTag& MontageTag);
+	
 	virtual int32 GetPlayerLevel();
 	/**
 	* 使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
@@ -42,10 +56,9 @@ public:
 	*/
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)//在蓝图中调用motionwraping的函数来实现
 	void UpdateFacingTarget(const FVector& TargetLocation);
-
 	
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
-	FVector GetCombatSocketLocation(const FGameplayTag& MontageTag);
+	FVector GetCombatSocketLocation(const FGameplayTag& CombatSocketTag);
 	
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	bool IsDead() const;
@@ -55,11 +68,9 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
 	UAnimMontage* GetHitReactMontage();
-	
-	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
-	TArray<FTaggedMontage> GetAttackMontage();
 
-	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
+	UNiagaraSystem* GetBloodEffect();
 	
 	virtual void Die() = 0;
 };

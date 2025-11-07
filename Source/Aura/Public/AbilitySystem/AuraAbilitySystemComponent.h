@@ -19,6 +19,7 @@ class AURA_API UAuraAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 public:
 	void AbilityActorInfoSet();
+	//多播委托，广播Tag
 	FEffectAssetTags EffectAssetTags;
 
 	void AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);//ASC is where to add Ability

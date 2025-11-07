@@ -21,7 +21,7 @@
 struct FGameplayEffectContextHandle;
 
 USTRUCT(BlueprintType)
-struct FEffectProperties
+struct FEffectProperties  //为了方便后续计算
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ struct FEffectProperties
 	TObjectPtr<ACharacter> SourceCharacter = nullptr ;
 };
 
-
+//函数指针（委托的内部构造）
 template<class T>
 using TStaticFunPtr = typename TBaseStaticDelegateInstance<T,FDefaultDelegateUserPolicy>::FFuncPtr;
 
@@ -64,15 +64,16 @@ class AURA_API UAuraAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 public:
 	UAuraAttributeSet();
-	
+	//预处理，修改Attribute的CurrentValue前用来约束修改的值不能越界（但是他的约束并没有改变ASC中的modify的值，只是改变了返回的modify的值）（InstantGameEffect会调用该函数）
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	//后处理，在属性(BaseValue)修改完成后进行调用。（InstantGameEffect会调用该函数）
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
-
+	//设置可复制属性固定函数
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	TMap<FGameplayTag,TStaticFunPtr<FGameplayAttribute()>> TagsToAttribute;
 
-	//Meta Attributes
+	//Meta Attributes（不会复制给客户端的属性，只为了计算）
 	UPROPERTY(BlueprintReadOnly,Category="Meta Attributes")
 	FGameplayAttributeData InComingDamage;
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,InComingDamage);

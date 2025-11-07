@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
-#include "AuraMeeleAttack.generated.h"
+#include "AuraMeleeAttack.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class AURA_API UAuraMeeleAttack : public UAuraDamageGameplayAbility
+class AURA_API UAuraMeleeAttack : public UAuraDamageGameplayAbility
 {
 	GENERATED_BODY()
 	

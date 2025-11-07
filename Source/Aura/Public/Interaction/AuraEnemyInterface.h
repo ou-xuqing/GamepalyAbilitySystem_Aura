@@ -24,10 +24,10 @@ class AURA_API IAuraEnemyInterface
 public:
 	virtual void HighlightActor()=0;
 	virtual void UnHighlightActor()=0;
-
+	//通过Enemy定义。Set在BTT_Attack中设置（通过读取行为树中的targetToFollow）,Get直接在蓝图中调用
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
 	void SetCombatTarget(AActor* InCombatTarget);
-
+	
 	UFUNCTION(blueprintCallable,BlueprintNativeEvent)
 	AActor* GetCombatTarget();
 };

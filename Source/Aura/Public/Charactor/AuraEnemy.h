@@ -24,8 +24,9 @@ public:
 	/* EnemyInterface */
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+	//Set在BTT_Attack中设置（通过读取行为树中的targetToFollow）
 	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
-	virtual AActor* GetCombatTarget_Implementation() override;
+	virtual AActor* GetCombatTarget_Implementation() override;//Get直接在蓝图中调用
 	/*CombatInterface */
 	virtual int32 GetPlayerLevel() override;
 

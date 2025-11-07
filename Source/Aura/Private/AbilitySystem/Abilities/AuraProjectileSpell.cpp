@@ -5,7 +5,6 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Interaction/CombatInterface.h"
 
@@ -17,13 +16,13 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation,const FGameplayTag& SocketTag)
 {
 	const bool bIsOnServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (!bIsOnServer)return;
 	//静态函数调用时如果要得到返回值，需要给调用对象（因为静态函数不是通过对象调用）
 	const FVector CombatSocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo()
-		,FAuraGameplayTags::Get().Montage_Attack_Weapon);
+		,SocketTag);
 	FRotator Rotation = (ProjectileTargetLocation-CombatSocketLocation).Rotation();
 	FTransform SpawnTransform;
 	SpawnTransform.SetLocation(CombatSocketLocation);

@@ -52,9 +52,9 @@ void AAuraCharacter::BeginPlay()
 
 void AAuraCharacter::InitAbilityActorInfo()
 {
-	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();//Apawn中的模板函数
 	check(AuraPlayerState);
-	//设置OwnerActor与AvatarActor
+	//设置OwnerActor(拥有ASC)与AvatarActor(ASC实际作用的对象（ASC给Aura应用Effect）)
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState,this);
 	//调用AbilityActorInfoSet，实现Effect委托，其中包含GameplayTag的使用
 	Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();
