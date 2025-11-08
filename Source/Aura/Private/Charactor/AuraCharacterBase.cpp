@@ -71,6 +71,16 @@ FTaggedMontage AAuraCharacterBase::GetTaggedMontagebyTag_Implementation(const FG
 	return FTaggedMontage();
 }
 
+int32 AAuraCharacterBase::GetMinionsCount_Implementation()
+{
+	return MinionsCount;
+}
+
+void AAuraCharacterBase::IncreaseMinionCount_Implementation(int MinionCount)
+{
+	MinionsCount += MinionCount;
+}
+
 void AAuraCharacterBase::Die()
 {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端

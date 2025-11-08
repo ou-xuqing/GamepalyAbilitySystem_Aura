@@ -70,6 +70,12 @@ public:
 	UAnimMontage* GetHitReactMontage();
 
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
+	int32 GetMinionsCount();
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	void IncreaseMinionCount(int MinionCount);
+	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
 	UNiagaraSystem* GetBloodEffect();
 	
 	virtual void Die() = 0;

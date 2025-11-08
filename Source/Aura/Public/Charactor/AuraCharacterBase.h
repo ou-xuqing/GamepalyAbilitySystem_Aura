@@ -48,6 +48,10 @@ public:
 	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
 
 	virtual FTaggedMontage GetTaggedMontagebyTag_Implementation(const FGameplayTag& MontageTag) override;
+
+	virtual int32 GetMinionsCount_Implementation() override;
+
+	virtual void IncreaseMinionCount_Implementation(int MinionCount) override;
 	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
@@ -124,10 +128,15 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	USoundBase* DeathSound;
+
+	//Minion
+	UPROPERTY(EditAnywhere,Category = "Combat")
+	int32 MinionsCount = 0;
 private:
 	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TObjectPtr<UAnimMontage> HitReactMontage;
+	
 };

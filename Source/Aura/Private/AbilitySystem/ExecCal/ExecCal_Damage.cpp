@@ -116,7 +116,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().TagToCaptureDefs[Pair.Value],EvaluateParameters,Resistance);
 		Resistance = FMath::Clamp(Resistance,0.f,80.f);
 
-		float DamageTypeValue = EffectSpec.GetSetByCallerMagnitude(Pair.Key);//通过Tag取出相应Ability的伤害,在Effect创建时Tag与Value进行的绑定
+		float DamageTypeValue = EffectSpec.GetSetByCallerMagnitude(Pair.Key,false);//通过Tag取出相应Ability的伤害,在Effect创建时Tag与Value进行的绑定
 		//百分比减伤
 		DamageTypeValue *= (100.f - Resistance) /100.f;
 		Damage += DamageTypeValue;
