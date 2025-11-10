@@ -56,12 +56,9 @@ public:
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
 	//CombatInterface
-
 	
 	UFUNCTION(NetMulticast,Reliable)//广播标记
 	virtual void MultiCastHandleDeath();//广播到客户端
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -101,14 +98,13 @@ protected:
 	
 	virtual	void InitAbilityActorInfo();
 
-	virtual void InitializeDefaultAttributes() const;
+	virtual void InitializeDefaultAttributes() const;//调用AETS给属性赋值
 
-	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass, float Level) const;
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass, float Level) const;//包装了ApplyEffectSpecToTarget
 
 	void AddCharacterAbilities();
 	
 	//Dissolve material
-
 	void Dissolve();
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -116,12 +112,13 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DisMaterialInsDyn);
-	
+	//要在运行中替换材质需要将材质动态实例化
 	UPROPERTY(EditAnywhere,Category= "Dissolve Material")
 	TObjectPtr<UMaterialInstance> CharacterDissolveMaterialInsDyn;
 
 	UPROPERTY(EditAnywhere,Category="Dissolve Material")
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInsDyn;
+	//Dissolve material
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	UNiagaraSystem* BloodEffect;
