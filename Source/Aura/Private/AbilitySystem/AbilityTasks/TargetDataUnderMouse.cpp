@@ -9,7 +9,7 @@ class AAuraPlayerController;
 //AbilityTask模板
 UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility)
 {
-	UTargetDataUnderMouse* TargetData = NewAbilityTask<UTargetDataUnderMouse>(OwningAbility);
+	UTargetDataUnderMouse* TargetData = NewAbilityTask<UTargetDataUnderMouse>(OwningAbility);//new一个对象，然后执行Activate，所以具体逻辑在Activate中
 	return TargetData;
 }
 

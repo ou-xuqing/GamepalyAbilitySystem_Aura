@@ -31,7 +31,7 @@ struct FCharacterClassDefaultInfo
 };
 
 /**
- * 
+ * 赋予Enemy技能和属性
  */
 UCLASS()//装载在GameMode中，因为该AssetData用来存储Enemy的基本属性和技能，属于GameMode，并且放在GameMode中也便于使用。
 class AURA_API UCharacterClassInfo : public UDataAsset 

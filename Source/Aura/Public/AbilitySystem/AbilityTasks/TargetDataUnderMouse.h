@@ -15,11 +15,14 @@ class AURA_API UTargetDataUnderMouse : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	//UFUNCTION中的这些东西是每个AbilityTask基本上都要填写的，蓝图中调用时函数名是DisplayName，具体实现在Activate中写
+	/*
+	 *UFUNCTION中的这些东西是每个AbilityTask基本上都要填写的，蓝图中调用时函数名是DisplayName，具体实现在Activate中写
+	 * 暴露给蓝图使用
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks",meta=(DisplayName = "TargetDataUnderMouse",HidePin="OwningAbility",DefaultToSelf="OwningAbility", BlueprintInternalUseOnly = "true"))
 	static UTargetDataUnderMouse* CreateTargetDataUnderMouse(UGameplayAbility *OwningAbility);
 
-	UPROPERTY(BlueprintAssignable)//TargetDataUnderMouse的一个出口
+	UPROPERTY(BlueprintAssignable)//TargetDataUnderMouse的一个出口，类似于OnComplete
 	FMouseTargetDataSignature ValidData;
 private:
 	//具体干什么在此函数中写

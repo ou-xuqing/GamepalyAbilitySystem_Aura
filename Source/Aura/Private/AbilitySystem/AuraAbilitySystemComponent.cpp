@@ -5,6 +5,7 @@
 
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "Aura/AuraLogChannels.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()//因为该处GameplayTag与AuraCharacter有关，所以在AuraCharacter的InitAbilityActorInfo中调用
 {
@@ -14,7 +15,7 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()//因为该处GameplayTag
 	//GEngine->AddOnScreenDebugMessage(-1,4.f,FColor::Blue,FString::Printf(TEXT("Tag: %s"),*Secondary_Armor.ToString()));
 }
 
-void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
+void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)//只在服务器中调用
 {
 	for (const auto Ability : StartupAbilities)
 	{
@@ -25,12 +26,14 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGame
 			GiveAbility(AbilitySpec);
 		}
 	}
+	bStartupAbilitiesGiven = true; //只进行一次广播。注意：服务器中的bool和客户端的bool是独立的（?）
+	AbilitiesGivenDelegate.Broadcast(this);//广播给SpellWidget
 }
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)//通过输入的tag来确定是哪个能力
 {
 	if (!InputTag.IsValid())return;
-	for (FGameplayAbilitySpec &AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec &AbilitySpec : GetActivatableAbilities())//ActivatableAbilities是玩家所装配的技能，也就是ASC调用GiveAbility给予的。存放AbilitySpec
 	{
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 		{
@@ -55,9 +58,59 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 	}
 }
 
+void UAuraAbilitySystemComponent::ForEachAbility(const FForeachAbility& Delegate)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (!Delegate.ExecuteIfBound(AbilitySpec))//委托如果绑定了函数就执行
+		{
+			UE_LOG(LogAura,Error,TEXT("在%hs中没有执行委托"),__FUNCTION__);
+		}
+	}
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	if (AbilitySpec.Ability)
+	{
+		for (const FGameplayTag& AbilityTag : AbilitySpec.Ability.Get()->AbilityTags)
+		{
+			if (AbilityTag.MatchesTag(FGameplayTag::RequestGameplayTag("Abilities")))
+			{
+				return AbilityTag;
+			}
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	for (const FGameplayTag& DyTag : AbilitySpec.GetDynamicSpecSourceTags())
+	{
+		if (DyTag.MatchesTag(FGameplayTag::RequestGameplayTag("InputTag")))
+		{
+			return DyTag;
+		}
+	}
+	return FGameplayTag();
+}
+
+void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+
+	if (!bStartupAbilitiesGiven)//本来是在AddCharacter中执行，但是由于AddCharacter只会在服务器中执行，所以客户端的UI无法接收广播。而能力会使用该函数复制到客户端，所以在此时广播。
+	{
+		bStartupAbilitiesGiven = true; //只进行一次广播
+		AbilitiesGivenDelegate.Broadcast(this);//广播给SpellWidget
+	}
+	
+}
 
 void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,
-                                                const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle GameplayEffectHandle)//ASC传递GameplayTags的固定写法
+                                                                     const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle GameplayEffectHandle)//ASC传递GameplayTags的固定写法
 {
 	FGameplayTagContainer TagContainer;
 	EffectSpec.GetAllAssetTags(TagContainer);
