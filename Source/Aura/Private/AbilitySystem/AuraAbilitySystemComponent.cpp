@@ -3,9 +3,11 @@
 
 #include "Aura/Public/AbilitySystem/AuraAbilitySystemComponent.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Aura/AuraLogChannels.h"
+#include "Interaction/PlayerInterface.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()//因为该处GameplayTag与AuraCharacter有关，所以在AuraCharacter的InitAbilityActorInfo中调用
 {
@@ -104,6 +106,28 @@ FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbi
 		}
 	}
 	return FGameplayTag();
+}
+
+void UAuraAbilitySystemComponent::UpdateAttribute(const FGameplayTag& AttributeTag)
+{
+	if (GetAvatarActor()->Implements<UPlayerInterface>())//检查Character是否实现playerInterface
+	{
+		if (IPlayerInterface::Execute_GetAttributePoints(GetAvatarActor())>0)
+		{
+			SeverUpdateAttribute(AttributeTag);//客户端点击时也在服务器执行
+		}
+	}
+}
+
+void UAuraAbilitySystemComponent::SeverUpdateAttribute_Implementation(const FGameplayTag& AttributeTag)
+{
+	FGameplayEventData Payload;
+	Payload.EventTag = AttributeTag;
+	Payload.EventMagnitude = 1.f;
+	//使用蓝图事件来修改属性（在蓝图中通过ASC ApplyEffect）。通过Tag来识别事件，在XP中也用过，使用一个持续激活的被动能力来监听事件
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetAvatarActor(),AttributeTag,Payload);
+
+	IPlayerInterface::Execute_AddToAttributePoints(GetAvatarActor(),-1);
 }
 
 void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()

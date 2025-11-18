@@ -70,7 +70,9 @@ public:
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 	//设置可复制属性固定函数
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	//CurrentAttribute修改后处理
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	
 	TMap<FGameplayTag,TStaticFunPtr<FGameplayAttribute()>> TagsToAttribute;
 
 	//Meta Attributes（不会复制给客户端的属性，只为了计算）
@@ -228,7 +230,11 @@ private:
 	void SetEffectProperties(const struct FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
 
 	void ShowFloatingText(const struct FEffectProperties& Props,float Number,bool IsBlocked,bool IsCritical);
-
+	//怪物受到致命一击时调用
 	void SendXPEvent(const FEffectProperties& Prop);
+
+	bool bTopOffMaxHeath = false;
+	bool bTopOffMaxMana = false;
+	
 };
 

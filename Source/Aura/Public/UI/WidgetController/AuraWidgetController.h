@@ -8,6 +8,7 @@
 
 class UAttributeSet;
 class UAbilitySystemComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerStateSignatrue,int32,NewValue);
 /**
  * WidgetController父类，设置属性PlayerController,PlayerState,ASC,AtrributeSet
  */

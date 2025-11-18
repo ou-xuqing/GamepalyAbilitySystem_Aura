@@ -22,7 +22,6 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	GENERATED_BODY()
 	
 	public:
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Widget Data")
 	TObjectPtr<ULevelUpInfo> LevelUpInfo;
 	
@@ -43,8 +42,22 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	void SetXP(int32 InXP);
 	FPlayerStateChanged OnXPChangedDelegate;
 	//
+
+	//AttributePoints
+	FORCEINLINE int32 GetAttributePoints() const {return AttributePointsMember;}
+	void AddToAttributePoints(int32 InPoints);
+	void SetAttributePoints(int32 InPoints);
+	FPlayerStateChanged OnAttributePointsChangedDelegate;
+	//
+
+	//SpellPoints
+	FORCEINLINE int32 GetSpellPoints() const {return SpellPointsMember;}
+	void AddToSpellPoints(int32 InPoints);
+	void SetSpellPoints(int32 InPoints);
+	FPlayerStateChanged OnSpellPointsChangedDelegate;
+	//
 	
-	protected:
+protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;//ASC指针，对于AuraCharacter在PlayerState里面初始化
 	UPROPERTY()
@@ -57,10 +70,22 @@ private:
 
 	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_XP)
 	int32 XPMember = 0;
+
+	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_AttributePoints)
+	int32 AttributePointsMember = 0;
+
+	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_SpellPoints)
+	int32 SpellPointsMember = 0;
 	
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
 
 	UFUNCTION()
 	void OnRep_XP(int32 OldXP);
+
+	UFUNCTION()
+	void OnRep_AttributePoints(int32 OldXP);
+
+	UFUNCTION()
+	void OnRep_SpellPoints(int32 OldSpellPoints);
 };

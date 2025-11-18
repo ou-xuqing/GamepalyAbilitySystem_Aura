@@ -66,12 +66,14 @@ void AAuraCharacter::AddToAttributePoints_Implementation(int32 Points)
 {
 	AAuraPlayerState* AuraPS = GetPlayerState<AAuraPlayerState>();
 	check(AuraPS);
-	
+	AuraPS->AddToAttributePoints(Points);
 }
 
 void AAuraCharacter::AddToSpellPoints_Implementation(int32 Points)
 {
-	IPlayerInterface::AddToSpellPoints_Implementation(Points);
+	AAuraPlayerState* AuraPS = GetPlayerState<AAuraPlayerState>();
+	check(AuraPS);
+	AuraPS->AddToSpellPoints(Points);
 }
 
 void AAuraCharacter::AddToPlayerLevel_Implementation(int32 InLevel)
@@ -112,6 +114,20 @@ int32 AAuraCharacter::FindLevelForXP_Implementation(int32 InXP)
 void AAuraCharacter::LevelUP_Implementation()
 {
 	MulticastLevelUPParticles();
+}
+
+int32 AAuraCharacter::GetAttributePoints_Implementation() const
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetAttributePoints();
+}
+
+int32 AAuraCharacter::GetSpellPoints_Implementation() const
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetSpellPoints();
 }
 
 int32 AAuraCharacter::GetPlayerLevel_Implementation()

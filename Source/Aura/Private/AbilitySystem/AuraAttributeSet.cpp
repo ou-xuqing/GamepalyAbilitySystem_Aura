@@ -149,8 +149,8 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 				IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter,AttributeReward);
 				IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter,SpellPointReward);
 
-				SetHealth(GetMaxHealth());
-				SetMana(GetMaxMana());
+				bTopOffMaxHeath = true;
+				bTopOffMaxMana = true;
 
 				IPlayerInterface::Execute_AddToXP(Props.SourceCharacter,LocalInComingXP);
 			}
@@ -159,6 +159,23 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 		}
 	}
 }
+
+
+void UAuraAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+	if (Attribute == GetMaxHealthAttribute() && bTopOffMaxHeath)//改变的属性是MaxHealth并且因为升级而改变
+	{
+		SetHealth(GetMaxHealth());
+		bTopOffMaxHeath = false;
+	}
+	if (Attribute == GetMaxManaAttribute() && bTopOffMaxMana)
+	{
+		SetMana(GetMaxMana());
+		bTopOffMaxMana = false;
+	}
+}
+
 
 void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Prop)
 {
