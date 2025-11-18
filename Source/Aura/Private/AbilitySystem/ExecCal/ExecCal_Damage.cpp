@@ -90,8 +90,16 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	AActor* SourceAvatar = SourceASC?SourceASC->GetAvatarActor():nullptr;
 	AActor* TargetAvatar = TargetASC?TargetASC->GetAvatarActor():nullptr;
 
-	ICombatInterface* SourceCombatInterface = Cast<ICombatInterface>(SourceAvatar);
-	ICombatInterface* TargetCombatInterface = Cast<ICombatInterface>(TargetAvatar);
+	int32 SourceLevel = 1;
+	if (SourceAvatar->Implements<UCombatInterface>())
+	{
+		SourceLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
+	}
+	int32 TargetLevel = 1;
+	if (SourceAvatar->Implements<UCombatInterface>())
+	{
+		TargetLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
+	}
 	
 	const FGameplayEffectSpec& EffectSpec = ExecutionParams.GetOwningSpec();
 	const FGameplayTagContainer* SourceTags = EffectSpec.CapturedSourceTags.GetAggregatedTags();
@@ -136,6 +144,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	//Critical
 	if (!bBlocked)
 	{
+		//整个图表中有多个曲线，所以要根据名字找到曲线（ScalabeFloat），如果设置的是曲线，直接找值即可（AuraAbilitySystemLibrary中GetXP）
 		FRealCurve* CriticalHitResistanceCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("CriticalHitResistance"),FString());
 		float SourceCriticalChance = 0.f;
 		float TargetCriticalHitResistance = 0.f;
@@ -147,7 +156,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitDamageDef,EvaluateParameters,SourceCriticalDamage);
 		SourceCriticalDamage = FMath::Max<float>(0.f,SourceCriticalDamage);
 		//暴击判定
-		const bool bCriticalHit = FMath::RandRange(1,100) < (SourceCriticalChance - TargetCriticalHitResistance * CriticalHitResistanceCurve->Eval(TargetCombatInterface->GetPlayerLevel()));
+		const bool bCriticalHit = FMath::RandRange(1,100) < (SourceCriticalChance - TargetCriticalHitResistance * CriticalHitResistanceCurve->Eval(TargetLevel));
 		Damage = bCriticalHit ? 2.f * Damage + SourceCriticalDamage : Damage;
 		UAuraAbilitySystemLibrary::SetCriticalHit(EffectContextHandle,bCriticalHit);
 	}
@@ -163,7 +172,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	//要从表中取出百分之穿透
 	FRealCurve* AromrPenetrationCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("ArmorPenetration"),FString());
 	
-	TargetArmor = (TargetArmor - SourceArmorPenetration) * (1.f - AromrPenetrationCurve->Eval(SourceCombatInterface->GetPlayerLevel()));//固穿与百分比穿透
+	TargetArmor = (TargetArmor - SourceArmorPenetration) * (1.f - AromrPenetrationCurve->Eval(SourceLevel));//固穿与百分比穿透
 	TargetArmor = FMath::Max<float>(0.f,TargetArmor);//护甲不能为0
 
 	Damage *= (100 - TargetArmor*0.333f)/100.f;//护甲减伤

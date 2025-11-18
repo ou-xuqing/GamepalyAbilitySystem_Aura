@@ -30,6 +30,15 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGame
 	AbilitiesGivenDelegate.Broadcast(this);//广播给SpellWidget
 }
 
+void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities)
+{
+	for (const auto Ability : StartupPassiveAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability,1);
+		GiveAbilityAndActivateOnce(AbilitySpec);//被动技能的类是GameplayAbility，所以不需要cast到AuraGameplayAbility
+	}
+}
+
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)//通过输入的tag来确定是哪个能力
 {
 	if (!InputTag.IsValid())return;

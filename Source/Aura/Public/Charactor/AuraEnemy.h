@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Data/CharacterClassInfo.h"
+
 #include "AI/AuraAIController.h"
 #include "Charactor/AuraCharacterBase.h"
 #include "Interaction/AuraEnemyInterface.h"
@@ -28,7 +28,7 @@ public:
 	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
 	virtual AActor* GetCombatTarget_Implementation() override;//Get直接在蓝图中调用
 	/*CombatInterface */
-	virtual int32 GetPlayerLevel() override;
+	virtual int32 GetPlayerLevel_Implementation() override;
 
 	virtual void PossessedBy(AController* NewController) override;
 	
@@ -53,10 +53,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character class Default")
 	int32 Level=1;
-
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
-	ECharacterClass CharacterClass = ECharacterClass::Warrior;
-
+	
 	UPROPERTY(BlueprintReadOnly,Category="Combat")
 	bool bHitReacting = false;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Combat")

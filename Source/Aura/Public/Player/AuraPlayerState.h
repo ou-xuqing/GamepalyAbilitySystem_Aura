@@ -7,8 +7,11 @@
 #include "GameFramework/PlayerState.h"
 #include "AuraPlayerState.generated.h"
 
+class ULevelUpInfo;
 class UAttributeSet;
 class UAbilitySystemComponent;
+//不在蓝图中绑定的委托可以不用dynamic
+DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateChanged,int32);
 /**
  * 继承IAbilitySystemInterface重写GetAbiliySystemComponent方法
  * 并且在构造方法中初试化ASC和AttributSet
@@ -19,11 +22,27 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	GENERATED_BODY()
 	
 	public:
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Widget Data")
+	TObjectPtr<ULevelUpInfo> LevelUpInfo;
+	
 	AAuraPlayerState();
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const{return AttributeSet;}
+	//Level
 	FORCEINLINE int32 GetPlayerLevel() const{return Level;}
+	void AddToLevel(int32 InLevel);
+	void SetLevel(int32 InLevel);
+	FPlayerStateChanged OnLevelChangedDelegate;
+	//
+	
+	//XP
+	FORCEINLINE int32 GetXP() const{return XPMember;}
+	void AddToXP(int32 InXP);
+	void SetXP(int32 InXP);
+	FPlayerStateChanged OnXPChangedDelegate;
+	//
 	
 	protected:
 	UPROPERTY(VisibleAnywhere)
@@ -31,9 +50,17 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
+
+private:
 	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_Level)
 	int32 Level=1;
 
+	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_XP)
+	int32 XPMember = 0;
+	
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
+
+	UFUNCTION()
+	void OnRep_XP(int32 OldXP);
 };

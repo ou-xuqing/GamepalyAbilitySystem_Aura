@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
@@ -34,6 +35,9 @@ public:
 	
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
 	//CombatInterface
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
 	
@@ -52,10 +56,13 @@ public:
 	virtual int32 GetMinionsCount_Implementation() override;
 
 	virtual void IncreaseMinionCount_Implementation(int MinionCount) override;
+
+	virtual ECharacterClass GetCharacterClass_Implementation() override;
 	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
 	//CombatInterface
+	
 	
 	UFUNCTION(NetMulticast,Reliable)//广播标记
 	virtual void MultiCastHandleDeath();//广播到客户端
@@ -133,6 +140,9 @@ private:
 	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
+	UPROPERTY(EditAnywhere,Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
+	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TObjectPtr<UAnimMontage> HitReactMontage;
 	

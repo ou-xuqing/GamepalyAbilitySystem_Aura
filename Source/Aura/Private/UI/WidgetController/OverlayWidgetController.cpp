@@ -5,8 +5,10 @@
 
 #include "GameplayTagsManager.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Data/LevelUpInfo.h"
 #include "Aura/Public/AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Public/AbilitySystem/AuraAttributeSet.h"
+#include "Player/AuraPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -75,6 +77,14 @@ void UOverlayWidgetController::BindCallbacksToDependencies()//为ASC委托绑定
 			}
 		);
 	}
+	if (AAuraPlayerState* AuraPS = Cast<AAuraPlayerState>(PlayerState))
+	{
+		AuraPS->OnXPChangedDelegate.AddUObject(this,&UOverlayWidgetController::OnXPChanged);
+		AuraPS->OnLevelChangedDelegate.AddLambda([this](int32 NewLevel)
+		{
+			OnLevelUPDelegate.Broadcast(NewLevel);
+		});
+	}
 
   }
 
@@ -90,4 +100,26 @@ void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemCo
 		AbilityInfoDelegate.Broadcast(Info);//OverlapWidget接受广播的值
 	});
 	AuraASC->ForEachAbility(ForeachAbilityDelegate);//在ASC中执行该委托，为了不在WidgetController中过多使用其他类的内容。（例如，将当前激活能力列表锁定）
+}
+
+void UOverlayWidgetController::OnXPChanged(int32 XP)
+{
+	if (AAuraPlayerState* AuraPS = Cast<AAuraPlayerState>(PlayerState))
+	{
+		ULevelUpInfo* LevelUpInfo = AuraPS->LevelUpInfo;
+			
+		const int32 Level = LevelUpInfo->FindLevelForXP(XP);//通过经验值获取等级
+		const int32 MaxLevel = LevelUpInfo->LevelUpInformation.Num();
+
+		if (Level<=MaxLevel && Level>0)
+		{
+			const int32 CurMaxXP = LevelUpInfo->LevelUpInformation[Level].LevelUpRequirement;
+			const int32 CurMinXP = LevelUpInfo->LevelUpInformation[Level-1].LevelUpRequirement;
+			const int32 DeltaXP = CurMaxXP - CurMinXP;
+			const int32 XPForThisLevel = XP - CurMinXP;
+			
+			const float Precent =static_cast<float> (XPForThisLevel) / static_cast<float> (DeltaXP);
+			OnXPBarChangedDelegate.Broadcast(Precent);
+		}
+	}
 }

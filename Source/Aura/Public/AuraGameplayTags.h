@@ -35,6 +35,8 @@ public:
 	FGameplayTag Attribute_Resilience_Lightning;
 	FGameplayTag Attribute_Resilience_Arcane;
 	FGameplayTag Attribute_Resilience_Physical;
+
+	FGameplayTag Attribute_Meta_InComingXP;
 	
 	FGameplayTag InputTag_LMB;
 	FGameplayTag InputTag_RMB;

@@ -5,9 +5,10 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "Aura/AuraLogChannels.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
-#include "Kismet/GameplayStatics.h"
+#include "Interaction/PlayerInterface.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/AuraPlayerController.h"
 
@@ -104,11 +105,11 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 			const bool bFatal = GetHealth() <= 0.f;
 			if (bFatal)
 			{
-				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);//通过接口调用减少耦合
-				if (CombatInterface)
+				if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor))//通过接口调用减少耦合
 				{
 					CombatInterface->Die();
 				}
+				SendXPEvent(Props);
 			}else
 			{
 				FGameplayTagContainer TagContainer = FGameplayTagContainer();
@@ -126,7 +127,55 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 			}
 		}
 	}
+	if (Data.EvaluatedData.Attribute == GetInComingXPAttribute())
+	{
+		const float LocalInComingXP = GetInComingXP();
+		SetInComingXP(0.f);
+		//检查是否升级,以及升级后的处理
+		if (Props.SourceCharacter->Implements<UPlayerInterface>())
+		{
+			int32 CurLevel = ICombatInterface::Execute_GetPlayerLevel(Props.SourceCharacter);
+			int32 CurXP = IPlayerInterface::Execute_GetXP(Props.SourceCharacter) + LocalInComingXP;
+
+			int32 Level = IPlayerInterface::Execute_FindLevelForXP(Props.SourceCharacter,CurXP);
+			int32 NumLevelUPs = Level - CurLevel;
+			if (NumLevelUPs > 0)
+			{
+				const int32 AttributeReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.TargetCharacter,CurLevel);
+				const int32 SpellPointReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.TargetCharacter,CurLevel);
+
+				IPlayerInterface::Execute_LevelUP(Props.SourceCharacter);
+				IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter,NumLevelUPs);
+				IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter,AttributeReward);
+				IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter,SpellPointReward);
+
+				SetHealth(GetMaxHealth());
+				SetMana(GetMaxMana());
+
+				IPlayerInterface::Execute_AddToXP(Props.SourceCharacter,LocalInComingXP);
+			}
+			
+			IPlayerInterface::Execute_AddToXP(Props.SourceCharacter,LocalInComingXP);
+		}
+	}
 }
+
+void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Prop)
+{
+	if (Prop.TargetCharacter->Implements<UCombatInterface>())
+	{
+		const int32 TargetLevel = ICombatInterface::Execute_GetPlayerLevel(Prop.TargetCharacter);
+		ECharacterClass CharacterClass = ICombatInterface::Execute_GetCharacterClass(Prop.TargetCharacter);//蓝图原生事件在C++中必须这样调用
+		const int32 XP = UAuraAbilitySystemLibrary::GetRewardXPForClassAndLevel(Prop.TargetCharacter,CharacterClass,TargetLevel);
+
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		FGameplayEventData Payload;
+		Payload.EventTag = GameplayTags.Attribute_Meta_InComingXP;
+		Payload.EventMagnitude = XP;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Prop.SourceCharacter,GameplayTags.Attribute_Meta_InComingXP,Payload);
+	}
+}
+
 
 void UAuraAttributeSet::ShowFloatingText(const struct FEffectProperties& Props, float Number,bool IsBlocked,bool IsCritical)
 {

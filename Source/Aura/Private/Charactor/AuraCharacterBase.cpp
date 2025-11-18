@@ -81,6 +81,11 @@ void AAuraCharacterBase::IncreaseMinionCount_Implementation(int MinionCount)
 	MinionsCount += MinionCount;
 }
 
+ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation()
+{
+	return CharacterClass;
+}
+
 void AAuraCharacterBase::Die()
 {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端
@@ -162,6 +167,7 @@ void AAuraCharacterBase::AddCharacterAbilities()//给Aura的能力，和Enemy不
 	if (!HasAuthority())return;
 	UAuraAbilitySystemComponent *ASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	ASC->AddCharacterAbilities(StartupAbilities);//给Aura设置技能而不是Enemy，因为Enemy不需要输入按键（Tag）
+	ASC->AddCharacterPassiveAbilities(StartupPassiveAbilities);
 }
 
 void AAuraCharacterBase::Dissolve()

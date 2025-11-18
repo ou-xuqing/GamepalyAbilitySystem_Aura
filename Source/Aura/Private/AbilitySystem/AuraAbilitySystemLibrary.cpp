@@ -84,12 +84,12 @@ void UAuraAbilitySystemLibrary::GiveAbilities(const UObject* WorldContextObject,
 	}
 	//不同职业有不同的Info
 	const FCharacterClassDefaultInfo& DefaultInfo = CharacterClassInfo->GetDefaultCharacterClassInfo(CharacterClass);
-	if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Asc->GetAvatarActor()))
+	if (Asc->GetAvatarActor()->Implements<UCombatInterface>())
 	{
 		for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultInfo.StartupAbilities)
 		{
 			//和上面不同，因为上面是一些公共能力，比如受击表现和死亡等，不需要等级。但是这些是和攻击相关的，需要等级。
-			FGameplayAbilitySpec AbilitySpec =  FGameplayAbilitySpec(AbilityClass,CombatInterface->GetPlayerLevel());
+			FGameplayAbilitySpec AbilitySpec =  FGameplayAbilitySpec(AbilityClass,ICombatInterface::Execute_GetPlayerLevel(Asc->GetAvatarActor()));
 			Asc->GiveAbility(AbilitySpec);
 		}
 	}
@@ -172,3 +172,13 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* Seconder
 
 	return !(IsPlayer || IsEnemy);
 }
+
+int32 UAuraAbilitySystemLibrary::GetRewardXPForClassAndLevel(const UObject* WorldContextObject,ECharacterClass CharacterClass, int32 Level)
+{
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+	if (CharacterClassInfo == nullptr) return 0;
+	FCharacterClassDefaultInfo CharacterClassDefaultInfo = CharacterClassInfo->GetDefaultCharacterClassInfo(CharacterClass);
+	const int32 XP = CharacterClassDefaultInfo.XPReward.GetValueAtLevel(Level);//已经设置好曲线直接用等级查找
+	return XP;
+}
+

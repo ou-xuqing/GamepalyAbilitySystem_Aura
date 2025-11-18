@@ -11,6 +11,7 @@
 #include "OverlayWidgetController.generated.h"
 
 
+class ULevelUpInfo;
 class UAbilityInfo;
 
 USTRUCT(BlueprintType)
@@ -35,7 +36,7 @@ struct FOnAttributeChangeData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAtrributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetSignature, FUIWidgetRow, Row);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature,const FAuraAbilityInfo&, Info);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerStateSignatrue,int32,NewValue);
 
 /**
  * 对需要的AttributeSet中的属性设置委托
@@ -49,6 +50,7 @@ class AURA_API UOverlayWidgetController : public UAuraWidgetController
 public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
+	
 	UPROPERTY(BlueprintAssignable,category="GAS|Attributes")
 	FOnAtrributeChangedSignature OnHealthChanged;//四个属性改变委托，具体在蓝图中实现
 
@@ -67,7 +69,15 @@ public:
 	UPROPERTY(BlueprintAssignable,category="GAS|Message")
 	FAbilityInfoSignature AbilityInfoDelegate;
 
+	UPROPERTY(BlueprintAssignable,category="GAS|XP")//因为广播的是百分比（float），如果用int32float全部被约成0了
+	FOnAtrributeChangedSignature OnXPBarChangedDelegate;
+
+	UPROPERTY(BlueprintAssignable,category="GAS|XP")
+	FPlayerStateSignatrue OnLevelUPDelegate;
+	
 	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraASC);
+
+	void OnXPChanged(int32 XP);
 protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Widget Data")

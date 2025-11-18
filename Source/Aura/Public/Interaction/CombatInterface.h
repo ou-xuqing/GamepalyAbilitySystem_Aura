@@ -43,13 +43,15 @@ class AURA_API ICombatInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	//使用BlueprintNativeEvent后，虚幻宏会定义该函数。
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	TArray<FTaggedMontage> GetAttackMontage();
 
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	FTaggedMontage GetTaggedMontagebyTag(const FGameplayTag& MontageTag);
-	
-	virtual int32 GetPlayerLevel();
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	int32 GetPlayerLevel();
 	/**
 	* 使用BlueprintImplementableEvent函数无法设为virtual，使用BlueprintNativeEvent函数自动为virtual
 	* 若在蓝图中实现则优先级大于C++实现
@@ -77,6 +79,9 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
 	UNiagaraSystem* GetBloodEffect();
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable) 
+	ECharacterClass GetCharacterClass();
 	
 	virtual void Die() = 0;
 };

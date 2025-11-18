@@ -28,6 +28,7 @@ public:
 	bool bStartupAbilitiesGiven = false;
 	
 	void AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);//ASC is where to add Ability
+	void AddCharacterPassiveAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupPassiveAbilities);
 	
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
