@@ -18,10 +18,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CauseDamage(AActor* Target);
 protected:
-	
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Damage")
 	TMap<FGameplayTag, FScalableFloat> DamageTypes;
+
+	float GetDamage(int32 InLevel);
 };

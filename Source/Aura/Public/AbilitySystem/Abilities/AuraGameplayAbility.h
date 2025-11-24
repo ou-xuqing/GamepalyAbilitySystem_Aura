@@ -14,8 +14,15 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility//Base Class of Abi
 {
 	GENERATED_BODY()
 
-	public:
+public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	FGameplayTag StartupInputTag;
 	
+	virtual FString GetDescription(int Level);
+	virtual FString GetDescriptionNextLevel(int Level);
+	static FString GetDescriptionOnLock(int Level);
+
+	float GetManaCost(int InLevel = 1) const;
+
+	float GetCooldown(int InLevel = 1) const;
 };

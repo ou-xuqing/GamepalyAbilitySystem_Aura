@@ -19,3 +19,13 @@ void UAuraDamageGameplayAbility::CauseDamage(AActor* Target)
 	}
 	GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*EffectSpecHandle.Data.Get(),UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target));
 }
+
+float UAuraDamageGameplayAbility::GetDamage(int32 InLevel)
+{
+	float Damage = 0.f;
+	for (auto& Pair : DamageTypes)
+	{
+		Damage += Pair.Value.GetValueAtLevel(InLevel);
+	}
+	return Damage;
+}

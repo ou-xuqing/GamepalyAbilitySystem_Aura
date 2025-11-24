@@ -40,19 +40,19 @@ AAuraCharacter::AAuraCharacter()
 	CharacterClass = ECharacterClass::Elementalist;
 }
 
-void AAuraCharacter::PossessedBy(AController* NewController)//在此时，PC已经设置完毕
+void AAuraCharacter::PossessedBy(AController* NewController)//在此时，PC已经设置完毕（Pawn被控制时会调用此函数，此时Pawn会设置自己的Controller）
 {
 	//work in server
-	Super::PossessedBy(NewController);
-	InitAbilityActorInfo();
+	Super::PossessedBy(NewController);//Controller设置完毕
+	InitAbilityActorInfo();//此时初始化可以取到controller了
 	AddCharacterAbilities();
 }
 
-void AAuraCharacter::OnRep_PlayerState()
+void AAuraCharacter::OnRep_PlayerState()//因为PC不会复制到客户端，当character生成时，PC将Character与PlayerStatus绑定到一起，PS会复制到客户端
 {
 	//work in client
 	Super::OnRep_PlayerState();
-	InitAbilityActorInfo();
+	InitAbilityActorInfo();//在PS复制到客户端时进行初始化，因为此时Controller是一定存在的
 }
 
 void AAuraCharacter::AddToXP_Implementation(int32 InXP)
@@ -81,6 +81,10 @@ void AAuraCharacter::AddToPlayerLevel_Implementation(int32 InLevel)
 	AAuraPlayerState* AuraPS = GetPlayerState<AAuraPlayerState>();
 	check(AuraPS);
 	AuraPS->AddToLevel(InLevel);
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		AuraASC->UpdateAbilityStatus(AuraPS->GetPlayerLevel());
+	}
 }
 
 int32 AAuraCharacter::GetXP_Implementation() const

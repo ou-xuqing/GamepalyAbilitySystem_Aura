@@ -29,9 +29,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable,category="GAS|XP")
 	FPlayerStateSignatrue OnAttributePointsChangedDelegate;
-
-	UPROPERTY(BlueprintAssignable,category="GAS|XP")
-	FPlayerStateSignatrue OnSpellPointsChangedDelegate;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<UAttributeInfo> AttributeInfo;

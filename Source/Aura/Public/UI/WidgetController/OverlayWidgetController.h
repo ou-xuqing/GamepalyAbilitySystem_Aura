@@ -6,8 +6,6 @@
 #include "GameplayTagContainer.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "UI/WidgetController/AuraWidgetController.h"
-#include "AbilitySystem/AuraAbilitySystemComponent.h"
-#include "AbilitySystem/Data/AbilityInfo.h"
 #include "OverlayWidgetController.generated.h"
 
 
@@ -35,7 +33,7 @@ struct FUIWidgetRow : public FTableRowBase//MessageTable行结构，GameplayTag�
 struct FOnAttributeChangeData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAtrributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetSignature, FUIWidgetRow, Row);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature,const FAuraAbilityInfo&, Info);
+
 
 /**
  * 对需要的AttributeSet中的属性设置委托
@@ -65,9 +63,6 @@ public:
 	UPROPERTY(BlueprintAssignable,category="GAS|Message")
 	FMessageWidgetSignature MessageWidgetDelegate;//拾取物品信息委托，具体在蓝图中实现
 
-	UPROPERTY(BlueprintAssignable,category="GAS|Message")
-	FAbilityInfoSignature AbilityInfoDelegate;
-
 	UPROPERTY(BlueprintAssignable,category="GAS|XP")//因为广播的是百分比（float），如果用int32float全部被约成0了
 	FOnAtrributeChangedSignature OnXPBarChangedDelegate;
 
@@ -77,13 +72,12 @@ public:
 	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraASC);
 
 	void OnXPChanged(int32 XP);
+
+	void OnEquippedAbilityChanged(const FGameplayTag& AbilityTag, const FGameplayTag& Status,const FGameplayTag& Slot, const FGameplayTag& PreSlot);
 protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Widget Data")
 	TObjectPtr<UDataTable> MessageWidgetDataTable;//存储以GameTag为主键的表，行结构使用UIWidgetRow，目的是用SubWidget显示pickup的信息
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category="Widget Data")
-	TObjectPtr<UAbilityInfo> AbilityInfo;
 	
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);//使用GameplayTag寻找表项的模板方法

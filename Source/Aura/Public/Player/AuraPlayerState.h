@@ -54,7 +54,7 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	FORCEINLINE int32 GetSpellPoints() const {return SpellPointsMember;}
 	void AddToSpellPoints(int32 InPoints);
 	void SetSpellPoints(int32 InPoints);
-	FPlayerStateChanged OnSpellPointsChangedDelegate;
+	FPlayerStateChanged OnPSSpellPointsChangedDelegate;
 	//
 	
 protected:
@@ -75,7 +75,7 @@ private:
 	int32 AttributePointsMember = 0;
 
 	UPROPERTY(VisibleAnywhere,ReplicatedUsing=OnRep_SpellPoints)
-	int32 SpellPointsMember = 0;
+	int32 SpellPointsMember = 1;
 	
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);

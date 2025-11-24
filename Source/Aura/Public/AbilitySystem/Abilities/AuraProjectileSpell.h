@@ -22,4 +22,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnProjectile(const FVector& ProjectileTargetLocation,const FGameplayTag& SocketTag,bool bIsOverridePitch = false,float OverridePitch = 0.f);
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	int32 NumProjectileSpell = 5;
 };

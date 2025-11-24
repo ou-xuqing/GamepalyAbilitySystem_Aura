@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "AuraHUD.generated.h"
 
+class USpellMenuWidgetController;
 class UAttributeMenuWidgetController;
 struct FWidgetControllerParams;
 class UAttributeSet;
@@ -25,7 +26,8 @@ class AURA_API AAuraHUD : public AHUD
 public: 
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCparams);
 	UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const FWidgetControllerParams& WCparams);
-
+	USpellMenuWidgetController* GetSpellMenuWidgetController(const FWidgetControllerParams& WCparams);
+	//Overlay启动游戏时就会用到，所以随着Character的初始化而初始化（注意要在PlayerController设置完毕后在调用）
 	void InitOverlay(APlayerController* PC, APlayerState* PS,UAbilitySystemComponent* ASC,UAttributeSet* AS);
 	
 protected:
@@ -46,4 +48,9 @@ private:
 	TObjectPtr<UAttributeMenuWidgetController> AttributeMenuWidgetController;
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UAttributeMenuWidgetController> AttributeMenuWidgetControllerClass;
+
+	UPROPERTY()
+	TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
 };

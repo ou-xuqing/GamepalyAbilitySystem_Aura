@@ -18,7 +18,6 @@ void UAttributeMenuWidgetController::BroadcastInitialValues()//在蓝图中调�
 		BroadcastAttributeInfo(pair.Key,pair.Value());
 	}
 	OnAttributePointsChangedDelegate.Broadcast(AuraPS->GetAttributePoints());
-	OnSpellPointsChangedDelegate.Broadcast(AuraPS->GetSpellPoints());
 }
 
 void UAttributeMenuWidgetController::BindCallbacksToDependencies()
@@ -39,11 +38,6 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 		AuraPS->OnAttributePointsChangedDelegate.AddLambda([this](int32 NewPoints)
 		{
 			OnAttributePointsChangedDelegate.Broadcast(NewPoints);
-		});
-
-		AuraPS->OnSpellPointsChangedDelegate.AddLambda([this](int32 NewPoints)
-		{
-			OnSpellPointsChangedDelegate.Broadcast(NewPoints);
 		});
 	}
 }
