@@ -54,6 +54,16 @@ public:
 	FGameplayTag Damage_Arcane;
 	FGameplayTag Damage_Physical;
 
+	FGameplayTag DeBuff_Burn;
+	FGameplayTag DeBuff_Stun;
+	FGameplayTag DeBuff_Physical;
+	FGameplayTag DeBuff_Arcane;
+	
+	FGameplayTag DeBuff_Damage;
+	FGameplayTag DeBuff_Chance;
+	FGameplayTag DeBuff_Duration;
+	FGameplayTag DeBuff_Frequency;
+	
 	FGameplayTag Effect_HitReact;
 
 	FGameplayTag Abilities_None;
@@ -61,7 +71,8 @@ public:
 	FGameplayTag Abilities_Summon;
 
 	FGameplayTag Abilities_HitReact;
-
+	FGameplayTag Abilities_Knockback;
+	
 	FGameplayTag Abilities_Status_Locked;
 	FGameplayTag Abilities_Status_UnLocked;
 	FGameplayTag Abilities_Status_Eligible;
@@ -86,6 +97,8 @@ public:
 	FGameplayTag Montage_Attack_4;
 	
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResilience;
+
+	TMap<FGameplayTag,FGameplayTag> DamageTypeToDeBuff;
 private:
 	static FAuraGameplayTags GameplayTags;
 };

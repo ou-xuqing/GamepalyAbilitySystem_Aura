@@ -166,6 +166,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 		}
 	}
 	InitializeDefaultAttributes();
+	OnAscRegister.Broadcast(AbilitySystemComponent);
 }
 
 void AAuraCharacter::MulticastLevelUPParticles_Implementation() const

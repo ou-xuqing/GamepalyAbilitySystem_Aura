@@ -183,7 +183,7 @@ void UAuraAbilitySystemComponent::UpdateAttribute(const FGameplayTag& AttributeT
 	}
 }
 
-void UAuraAbilitySystemComponent::UpdateAbilityStatus(int32 Level)//在AuraCharacter的AddToLevel中调用
+void UAuraAbilitySystemComponent::UpdateAbilityStatus(int32 Level)//在AuraCharacter的AddToLevel中调用，解锁新技能
 {
 	UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
 
@@ -235,6 +235,7 @@ void UAuraAbilitySystemComponent::ClientEquipAbility_Implementation(const FGamep
 	AbilityEquippedDelegate.Broadcast(AbilityTag,Status,Slot,PreSlot);
 }
 
+//如果有技能解锁，此时player已经解锁新技能。在UpdateCharacterStatus中增加新技能
 void UAuraAbilitySystemComponent::ServerSpendSpellPoints_Implementation(const FGameplayTag& AbilityTag)
 {
 	if ( FGameplayAbilitySpec* AbilitySpec = GetSpecFromTag(AbilityTag))
@@ -316,6 +317,7 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
 	
 }
 
+//给特定客户端广播
 void UAuraAbilitySystemComponent::ClientAbilityStatusChanged_Implementation(const FGameplayTag& AbilityTag , const FGameplayTag& StatusTag,int32 NewLevel)
 {
 	AbilityStatusChangedDelegate.Broadcast(AbilityTag,StatusTag,NewLevel);//SpellMenuController中绑定此委托

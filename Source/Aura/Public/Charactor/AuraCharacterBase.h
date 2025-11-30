@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "Debuff/DebuffNiagaraComponent.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
@@ -47,7 +48,7 @@ public:
 
 	virtual TArray<FTaggedMontage> GetAttackMontage_Implementation() override;
 	
-	virtual void Die() override;//在PostAttribute中调用
+	virtual void Die(FVector InDeathImpulse) override;//在PostAttribute中调用
 
 	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
 
@@ -58,6 +59,12 @@ public:
 	virtual void IncreaseMinionCount_Implementation(int MinionCount) override;
 
 	virtual ECharacterClass GetCharacterClass_Implementation() override;
+
+	virtual FOnASCRegister& GetOnASCRegisterDelegate() override;
+
+	virtual FOnDeath& GetOnDeathDelegate() override;
+
+	virtual void Knockback(FVector InKnockback) override;
 	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
@@ -65,11 +72,15 @@ public:
 	
 	
 	UFUNCTION(NetMulticast,Reliable)//广播标记
-	virtual void MultiCastHandleDeath();//广播到客户端
+	virtual void MultiCastHandleDeath(FVector InDeathImpulse);//广播到客户端
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	FOnASCRegister OnAscRegister;
+
+	FOnDeath OnDeath;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 
@@ -136,6 +147,9 @@ protected:
 	//Minion
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	int32 MinionsCount = 0;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
 private:
 	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;

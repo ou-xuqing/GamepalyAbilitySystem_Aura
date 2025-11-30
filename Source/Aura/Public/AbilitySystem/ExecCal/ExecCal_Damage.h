@@ -18,7 +18,10 @@ class AURA_API UExecCal_Damage : public UGameplayEffectExecutionCalculation
 	GENERATED_BODY()
 	public:
 	UExecCal_Damage();
-	
+	void IsDeBuff(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
+	              const FGameplayEffectSpec& EffectSpec,
+	              FAggregatorEvaluateParameters EvaluateParameters) const;
+
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 	
 };

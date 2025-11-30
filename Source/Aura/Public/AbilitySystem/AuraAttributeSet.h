@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "GameplayEffectExtension.h"
 #include "AuraAttributeSet.generated.h"
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -232,7 +231,10 @@ private:
 	void ShowFloatingText(const struct FEffectProperties& Props,float Number,bool IsBlocked,bool IsCritical);
 	//怪物受到致命一击时调用
 	void SendXPEvent(const FEffectProperties& Prop);
-
+	void HandleInComingDamage(const FEffectProperties& Props);
+	void HandleInComingXP(const FEffectProperties& Props);
+	//动态生成一个Effect并且赋予Target
+	void DeBuff(const FEffectProperties& Props);
 	bool bTopOffMaxHeath = false;
 	bool bTopOffMaxMana = false;
 	

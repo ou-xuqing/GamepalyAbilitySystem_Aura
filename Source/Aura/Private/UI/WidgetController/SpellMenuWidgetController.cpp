@@ -168,6 +168,8 @@ void USpellMenuWidgetController::OnEquipSpellGlobePressed(const FGameplayTag& Ab
 	Info.InputTag = Slot;
 	AbilityInfoDelegate.Broadcast(Info);
 
+	//播放音乐,SpellGlobeButton对该委托进行绑定，因为SpellGlobeButton拥有AbilityTag
+	OnEquippedSkillDelegate.Broadcast(AbilityTag);
 	StopWaitForEquippedDelegate.Broadcast(AbilityInfo->GetAbilityInfo(AbilityTag).AbilityType);//关闭EquipSpell动画
 }
 

@@ -3,8 +3,8 @@
 
 #include "AbilitySystem/ExecCal/ExecCal_Damage.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AuraAbilityTypes.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
@@ -81,6 +81,40 @@ UExecCal_Damage::UExecCal_Damage()
 	RelevantAttributesToCapture.Add(DamageStatic().Resilience_PhysicalDef);
 }
 
+void UExecCal_Damage::IsDeBuff(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FGameplayEffectSpec& EffectSpec, FAggregatorEvaluateParameters EvaluateParameters) const
+{
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	for (const TPair<FGameplayTag, FGameplayTag>& Pair : GameplayTags.DamageTypeToDeBuff)
+	{
+		const FGameplayTag& DamageType = Pair.Key;
+		float TypeDamage = EffectSpec.GetSetByCallerMagnitude(DamageType,false,-2.f);
+		//如果有这个类型的伤害，就要鉴定这个类型的DeBuff
+		if (TypeDamage > -1.f)
+		{
+			//捕获Chance，这是在ApplyEffect时通过Tag添加的。
+			float DeBuffChance = EffectSpec.GetSetByCallerMagnitude(GameplayTags.DeBuff_Chance,false,-2.f);
+			if (DeBuffChance > -1.f)
+			{
+				const FGameplayTag& ResilienceType = GameplayTags.DamageTypesToResilience[DamageType];
+				float TargetDeBuffResilience = 0.f;
+				//捕获抵抗
+				ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().TagToCaptureDefs[ResilienceType],EvaluateParameters,TargetDeBuffResilience);
+				const float EffectiveDeBuffChance = (DeBuffChance + 10.f - TargetDeBuffResilience * 0.2f) / 100.f;
+
+				bool bDeBuff = FMath::RandRange(1,100) < EffectiveDeBuffChance;
+				if (bDeBuff)
+				{
+					FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
+					float DeBuffDamage = EffectSpec.GetSetByCallerMagnitude(GameplayTags.DeBuff_Damage,false,0.f);
+					float DeBuffDuration = EffectSpec.GetSetByCallerMagnitude(GameplayTags.DeBuff_Duration,false,0.f);
+					float DeBuffFrequency = EffectSpec.GetSetByCallerMagnitude(GameplayTags.DeBuff_Frequency,false,0.f);
+					UAuraAbilitySystemLibrary::SetDeBuffParams(EffectContextHandle,bDeBuff,DeBuffDamage,DeBuffDuration,DeBuffFrequency,DamageType);
+				}
+			}
+		}
+	}
+}
+//结算攻击伤害（在AS的PostEffect里更新血量），判断是否会施加Debuff（此时还未施加Debuff，在AS的PostEffect里应用）
 void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
                                              FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
@@ -113,6 +147,17 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	if (!DamageStatic().bIsInitTagToCaptureDefs)
 	{
 		DamageStatic().InitTagToCaptureDefs();
+	}
+
+	IsDeBuff(ExecutionParams, EffectSpec, EvaluateParameters);
+
+	float KnockbackChance = EffectSpec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Abilities_Knockback,false);
+	KnockbackChance = FMath::Clamp(KnockbackChance,0.f,100.f);
+	bool bKnockback = FMath::RandRange(1.f,100.f) < KnockbackChance;
+	if (bKnockback)
+	{
+		FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
+		UAuraAbilitySystemLibrary::SetIsKnockback(EffectContextHandle,bKnockback);
 	}
 	
 	float Damage = 0.f;
@@ -169,7 +214,7 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().ArmorPenetrationDef,EvaluateParameters,SourceArmorPenetration);
 	SourceArmorPenetration = FMath::Max<float>(0.f,SourceArmorPenetration);
 
-	//要从表中取出百分之穿透
+	//要从表中取出百分比穿透
 	FRealCurve* AromrPenetrationCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("ArmorPenetration"),FString());
 	
 	TargetArmor = (TargetArmor - SourceArmorPenetration) * (1.f - AromrPenetrationCurve->Eval(SourceLevel));//固穿与百分比穿透

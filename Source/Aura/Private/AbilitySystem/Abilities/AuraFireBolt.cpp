@@ -9,7 +9,7 @@ FString UAuraFireBolt::GetDescription(int Level)
 	//三个Get在父类中实现
 	const float ManaCost = GetManaCost(Level);
 	const float CooldownTime = GetCooldown(Level);
-	const int32 Damage = GetDamage(Level);
+	const int32 CurDamage = GetDamage(Level);
 	
 	return FString::Printf(TEXT("<Tile>Fire Bolt</> \n"
 		"<Small>Level: </><Level>%d</> \n"
@@ -22,7 +22,7 @@ FString UAuraFireBolt::GetDescription(int Level)
 		ManaCost,
 		CooldownTime,
 		FMath::Min(Level,NumProjectileSpell),
-		Damage
+		CurDamage
 		);
 }
 
@@ -30,7 +30,7 @@ FString UAuraFireBolt::GetDescriptionNextLevel(int Level)
 {
 	const float ManaCost = GetManaCost(Level);
 	const float CooldownTime = GetCooldown(Level);
-	const int32 Damage = GetDamage(Level);
+	const int32 CurDamage = GetDamage(Level);
 	
 	return FString::Printf(TEXT("<Tile>Next Level</> \n"
 		"<Small>Level: </><Level>%d</> \n"
@@ -43,6 +43,6 @@ FString UAuraFireBolt::GetDescriptionNextLevel(int Level)
 		ManaCost,
 		CooldownTime,
 		FMath::Min(Level,NumProjectileSpell),
-		Damage
+		CurDamage
 		);
 }

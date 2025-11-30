@@ -12,7 +12,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PawnMovementComponent.h"
 
 AAuraEnemy::AAuraEnemy()
 {
@@ -83,15 +82,21 @@ void AAuraEnemy::PossessedBy(AController* NewController)
 	}
 }
 
-void AAuraEnemy::Die()
+void AAuraEnemy::Die(FVector InDeathImpulse)
 {
 	SetLifeSpan(LifeSpan);
 	if (AuraAIController&&AuraAIController->GetBlackboardComponent())
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"),true);
 	}
-	Super::Die();
+	Super::Die(InDeathImpulse);
 }
+
+void AAuraEnemy::Knockback(FVector InKnockback)
+{
+	LaunchCharacter(InKnockback,true,true);
+}
+
 
 void AAuraEnemy:: BeginPlay()
 {
@@ -156,6 +161,7 @@ void AAuraEnemy::InitAbilityActorInfo()//初始化ASC的Actor信息
 		//需要用到GetGameMode，但其只能在服务器调用
 		InitializeDefaultAttributes();
 	}
+	OnAscRegister.Broadcast(AbilitySystemComponent);
 }
 
 void AAuraEnemy::InitializeDefaultAttributes() const//赋予属性

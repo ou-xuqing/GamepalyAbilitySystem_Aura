@@ -27,6 +27,10 @@ AAuraCharacterBase::AAuraCharacterBase()
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
+	BurnDebuffComponent->SetupAttachment(GetRootComponent());
+	BurnDebuffComponent->DebuffTag = FAuraGameplayTags::Get().DeBuff_Burn;
+	
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
@@ -86,27 +90,45 @@ ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation()
 	return CharacterClass;
 }
 
-void AAuraCharacterBase::Die()
+FOnASCRegister& AAuraCharacterBase::GetOnASCRegisterDelegate()
 {
-	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端
-	MultiCastHandleDeath();
+	return OnAscRegister;
 }
 
-void AAuraCharacterBase::MultiCastHandleDeath_Implementation()//复制到客户端
+FOnDeath& AAuraCharacterBase::GetOnDeathDelegate()
+{
+	return OnDeath;
+}
+
+void AAuraCharacterBase::Knockback(FVector InKnockback)
+{
+	LaunchCharacter(InKnockback,true,true);
+}
+
+void AAuraCharacterBase::Die(FVector InDeathImpulse)
+{
+	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端
+	MultiCastHandleDeath(InDeathImpulse);
+}
+
+void AAuraCharacterBase::MultiCastHandleDeath_Implementation(FVector InDeathImpulse)//复制到客户端
 {
 	UGameplayStatics::PlaySoundAtLocation(this,DeathSound,GetActorLocation(),GetActorRotation());
 	Weapon->SetSimulatePhysics(true);
 	Weapon->SetEnableGravity(true);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
+	Weapon->AddImpulse(InDeathImpulse,NAME_None,true);
+	
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetEnableGravity(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic,ECR_Block);
-
+	GetMesh()->AddImpulse(InDeathImpulse * 100,NAME_None,true);
+	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
 	bIsDead = true;
+	OnDeath.Broadcast(this);
 }
 
 // Called when the game starts or when spawned

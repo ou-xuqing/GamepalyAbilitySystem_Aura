@@ -43,9 +43,18 @@ void AAuraProjectile::BeginPlay()
 	if (LoopingSoundComponent) LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound,GetRootComponent());
 }
 
+void AAuraProjectile::OnHit()
+{
+	UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
+	if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+	bHit = true;
+}
+
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	/*
 	//DamageSpecHandle只会在服务器中设置所以要检查其有效性。后面和otherActor比较是为了防止火球打到自己
 	if (!DamageSpecHandle.Data.IsValid() || DamageSpecHandle.Data.Get()->GetEffectContext().GetEffectCauser()== OtherActor)
 	{
@@ -57,18 +66,28 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		return;
 	}
+	*/
+	//生成物不和自己以及友方单位碰撞
+	AActor* SourceActor = DamageParams.SourceAsc->GetAvatarActor();
+	if (SourceActor == OtherActor) return;
+	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceActor,OtherActor)) return;
+	
+	
 	if (!bHit)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-		bHit = true;
+		OnHit();
 	}
 	if (HasAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
-			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageSpecHandle.Data.Get());
+			DamageParams.TargetAsc = TargetASC;
+			DamageParams.DeathImpulse = GetActorForwardVector() * DamageParams.DeathImpulseMagnitude;
+			FRotator Rotation = GetActorForwardVector().Rotation();
+			Rotation.Pitch = 45.f;
+			const FVector ToTarget = Rotation.Vector();
+			DamageParams.Knockback = ToTarget * DamageParams.KnockbackMagnitude;
+			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageParams);
 		}
 		
 		Destroy();
@@ -78,16 +97,16 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	}
 }
 
+
 void AAuraProjectile::Destroyed()
 {
 	//在客户端未发生碰撞但已经销毁则发出声音和特效
 	if (!bHit&&!HasAuthority())
 	{
-		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
-		bHit = true;
+		OnHit();
 	}
 	Super::Destroyed();
 }
+
+
 

@@ -10,7 +10,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FSpellGlobeSelectSignatrue,bool,bSpendPointButtonEnable,bool,bEquippedButtonEnablel,FString,OutDescription,FString,OutDescriptionNextLevel);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitForEquippedSignature,const FGameplayTag&,AbilityType);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEquippedSkillSignature,const FGameplayTag&,AbilityTag);
 
 struct FSelectedAbility
 {
@@ -62,6 +62,8 @@ public:
 	UPROPERTY(BlueprintAssignable,category="GAS|XP")
 	FPlayerStateSignatrue OnSpellPointsChangedDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+	FEquippedSkillSignature OnEquippedSkillDelegate;
 
 private:
 	//存放当前选择的Ability信息

@@ -120,6 +120,37 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()//调用UGameplayTagsManag
 	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Arcane,GameplayTags.Attribute_Resilience_Arcane);
 	GameplayTags.DamageTypesToResilience.Add(GameplayTags.Damage_Physical,GameplayTags.Attribute_Resilience_Physical);
 
+	//DeBuff
+	GameplayTags.DeBuff_Burn = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Fire"),
+	FString("Fire DeBuff"));
+	GameplayTags.DeBuff_Stun = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Stun"),
+	FString("Lightning DeBuff"));
+	GameplayTags.DeBuff_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Physical"),
+	FString("Physical DeBuff"));
+	GameplayTags.DeBuff_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Arcane"),
+	FString("Arcane DeBuff"));
+
+	GameplayTags.DamageTypeToDeBuff.Add(GameplayTags.Damage_Fire,GameplayTags.DeBuff_Burn);
+	GameplayTags.DamageTypeToDeBuff.Add(GameplayTags.Damage_Lightning,GameplayTags.DeBuff_Stun);
+	GameplayTags.DamageTypeToDeBuff.Add(GameplayTags.Damage_Physical,GameplayTags.DeBuff_Physical);
+	GameplayTags.DamageTypeToDeBuff.Add(GameplayTags.Damage_Arcane,GameplayTags.DeBuff_Arcane);
+
+	GameplayTags.DeBuff_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Damage"),
+	FString("DeBuff Cause Damage"));
+	GameplayTags.DeBuff_Duration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Duration"),
+	FString("DeBuff Duration"));
+	GameplayTags.DeBuff_Chance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Chance"),
+	FString("DeBuff Chance"));
+	GameplayTags.DeBuff_Frequency = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("DeBuff.Frequency"),
+	FString("DeBuff Frequency"));
 	
 	//Effect Tags
 	GameplayTags.Effect_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -139,13 +170,16 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()//调用UGameplayTagsManag
 	GameplayTags.Abilities_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Abilities.Fire.FireBolt"),
 	FString("FireBolt Ability Tag"));
-	GameplayTags.Abilities_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Abilities.HitReact"),
-	FString("HitReact Ability Tag"));
 	GameplayTags.Abilities_Lightning_Electrocute = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Abilities.Lightning.Electrocute"),
 	FString("Electrocute Ability Tag"));
-
+	GameplayTags.Abilities_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Abilities.HitReact"),
+	FString("HitReact Ability Tag"));
+	GameplayTags.Abilities_Knockback = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Abilities.Knockback"),
+	FString("Knockback Ability Tag"));
+	
 	//AbilityStatus
 	GameplayTags.Abilities_Status_Locked = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Abilities.Status.Locked"),

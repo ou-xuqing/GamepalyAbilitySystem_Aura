@@ -5,27 +5,40 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 
 void UAuraDamageGameplayAbility::CauseDamage(AActor* Target)
 {
-	//GA内置函数，他可以找到自己的ASC
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass,1.f);
+	FDamageAbilityEffectParams Params = MakeDamageAbilityEffectParams(Target);
+	FRotator Rotation = (Target->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).Rotation();
+	Rotation.Pitch = 45.f;
+	const FVector ToTarget = Rotation.Vector();
+	Params.Knockback = ToTarget * Params.KnockbackMagnitude;
+	UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
+}
 
-	for (TTuple<FGameplayTag, FScalableFloat> Pair : DamageTypes)
-	{
-		const float CurDamage =  Pair.Value.GetValueAtLevel(GetAbilityLevel());
-		//将伤害与Tag进行绑定，这是GA要做的，最后在Execal中取出对应的伤害进行计算。
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle,Pair.Key, CurDamage);
-	}
-	GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*EffectSpecHandle.Data.Get(),UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target));
+FDamageAbilityEffectParams UAuraDamageGameplayAbility::MakeDamageAbilityEffectParams(AActor* Target) const 
+{
+	FDamageAbilityEffectParams Params;
+	Params.SourceAsc = GetAbilitySystemComponentFromActorInfo();
+	Params.WorldContextObject = GetAvatarActorFromActorInfo();
+	Params.TargetAsc = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	Params.Damage = Damage.GetValueAtLevel(GetAbilityLevel());
+	Params.AbilityLevel = GetAbilityLevel();
+	Params.DamageType = DamageType;
+	Params.DamageEffectClass = DamageEffectClass;
+	Params.DeBuffDamage = DeBuffDamage;
+	Params.DeBuffChance = DeBuffChance;
+	Params.DeBuffDuration = DeBuffDuration;
+	Params.DeBuffFrequency = DeBuffFrequency;
+	Params.DeathImpulseMagnitude = DeathImpulse;
+	Params.KnockbackMagnitude = KnockbackMagnitude;
+	Params.KnockbackChance = KnockbackChance;
+	return Params;
 }
 
 float UAuraDamageGameplayAbility::GetDamage(int32 InLevel)
 {
-	float Damage = 0.f;
-	for (auto& Pair : DamageTypes)
-	{
-		Damage += Pair.Value.GetValueAtLevel(InLevel);
-	}
-	return Damage;
+	const float CauseDamage = Damage.GetValueAtLevel(InLevel);
+	return CauseDamage;
 }

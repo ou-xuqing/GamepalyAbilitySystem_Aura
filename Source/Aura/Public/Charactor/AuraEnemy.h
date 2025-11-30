@@ -43,7 +43,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAtrributeChangedSignature OnMaxHealthChangedSignature;
 
-	virtual void Die() override;
+	virtual void Die(FVector InDeathImpulse) override;
+
+	virtual void Knockback(FVector InKnockback) override;
 	
 protected:
 	virtual void BeginPlay() override;

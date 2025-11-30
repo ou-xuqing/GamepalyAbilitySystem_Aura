@@ -1,5 +1,7 @@
 #include "AuraAbilityTypes.h"
 
+#include <map>
+
 bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)//找找相关内容看看
 {
 	int32 RepBits = 0;
@@ -41,9 +43,41 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* M
 		{
 			RepBits |= 1 << 8;
 		}
+		if (bIsSuccessfulDebuff)
+		{
+			RepBits |= 1 << 9;
+		}
+		if (DeBuffDamage > 0.f)
+		{
+			RepBits |= 1 << 10;
+		}
+		if (DeBuffDuration > 0.f)
+		{
+			RepBits |= 1 << 11;
+		}
+		if (DeBuffFrequency > 0.f)
+		{
+			RepBits |= 1 << 12;
+		}
+		if (DamageType.IsValid())
+		{
+			RepBits |= 1 << 13;
+		}
+		if (!DeathImpulse.IsZero())
+		{
+			RepBits |= 1 << 14;
+		}
+		if (bIsKnockback)
+		{
+			RepBits |= 1 << 15;
+		}
+		if (!Knockback.IsZero())
+		{
+			RepBits |= 1<< 16;
+		}
 	}
 
-	Ar.SerializeBits(&RepBits, 9);
+	Ar.SerializeBits(&RepBits, 16);
 
 	if (RepBits & (1 << 0))
 	{
@@ -94,6 +128,46 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* M
 	if (RepBits & (1 << 8))
 	{
 		Ar << bIsCriticalHit;
+	}
+
+	if (RepBits & (1 << 9))
+	{
+		Ar << bIsSuccessfulDebuff;
+	}
+	if (RepBits & (1 << 10))
+	{
+		Ar << DeBuffDamage;
+	}
+	if (RepBits & (1 << 11))
+	{
+		Ar << DeBuffDuration;
+	}
+	if (RepBits & (1 << 12))
+	{
+		Ar << DeBuffFrequency;
+	}
+	if (RepBits & (1 << 13))
+	{
+		if (Ar.IsLoading())
+		{
+			if (!DamageType.IsValid())//根据HitResult
+			{
+				DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+			}
+		}
+		DamageType->NetSerialize(Ar, Map, bOutSuccess);//该结构体没有NetSerialize函数，所以需要变成智能指针
+	}
+	if (RepBits & (1 << 14))
+	{
+		DeathImpulse.NetSerialize(Ar,Map, bOutSuccess);//FVector类型自己拥有NetSerialize函数
+	}
+	if (RepBits & (1 << 15))
+	{
+		Ar << bIsKnockback;
+	}
+	if (RepBits & (1 << 16))
+	{
+		Knockback.NetSerialize(Ar,Map,bOutSuccess);
 	}
 	
 	if (Ar.IsLoading())
