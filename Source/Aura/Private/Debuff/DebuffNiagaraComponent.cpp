@@ -4,7 +4,6 @@
 #include "Debuff/DebuffNiagaraComponent.h"
 
 #include "AbilitySystemComponent.h"
-#include "AuraGameplayTags.h"
 #include "Interaction/CombatInterface.h"
 
 UDebuffNiagaraComponent::UDebuffNiagaraComponent()

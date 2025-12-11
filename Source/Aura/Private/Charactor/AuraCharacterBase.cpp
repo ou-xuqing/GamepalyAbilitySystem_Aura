@@ -9,6 +9,7 @@
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AAuraCharacterBase::AAuraCharacterBase()
@@ -30,7 +31,10 @@ AAuraCharacterBase::AAuraCharacterBase()
 	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
 	BurnDebuffComponent->SetupAttachment(GetRootComponent());
 	BurnDebuffComponent->DebuffTag = FAuraGameplayTags::Get().DeBuff_Burn;
-	
+
+	StunDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("StunDebuffComponent");
+	StunDebuffComponent->SetupAttachment(GetRootComponent());
+	StunDebuffComponent->DebuffTag = FAuraGameplayTags::Get().DeBuff_Stun;
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
@@ -105,6 +109,21 @@ void AAuraCharacterBase::Knockback(FVector InKnockback)
 	LaunchCharacter(InKnockback,true,true);
 }
 
+USkeletalMeshComponent* AAuraCharacterBase::GetWeapon_Implementation()
+{
+	return Weapon;
+}
+
+void AAuraCharacterBase::SetBeingShocked_Implementation(bool bInBeingShocked)
+{
+	bIsBeingShocked = bInBeingShocked;
+}
+
+bool AAuraCharacterBase::GetIsBeingShocked_Implementation()
+{
+	return bIsBeingShocked;
+}
+
 void AAuraCharacterBase::Die(FVector InDeathImpulse)
 {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));//自动复制到客户端
@@ -128,6 +147,8 @@ void AAuraCharacterBase::MultiCastHandleDeath_Implementation(FVector InDeathImpu
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
 	bIsDead = true;
+	BurnDebuffComponent->Deactivate();
+	BurnDebuffComponent->Deactivate();
 	OnDeath.Broadcast(this);
 }
 
@@ -141,6 +162,12 @@ void AAuraCharacterBase::BeginPlay()
 void AAuraCharacterBase::InitAbilityActorInfo()
 {
 	
+}
+
+void AAuraCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AAuraCharacterBase,bIsBeingShocked);
 }
 
 //可以使用TMap<Tag,FName>来进行查找，这里使用三个if是因为本项目只有这三个

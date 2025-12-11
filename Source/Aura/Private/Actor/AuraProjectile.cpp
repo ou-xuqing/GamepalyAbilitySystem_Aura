@@ -32,6 +32,21 @@ AAuraProjectile::AAuraProjectile()
 	ProjectileMovement->MaxSpeed = 550.f;
 	ProjectileMovement->InitialSpeed = 550.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
+	//设置Actor的Tick次数
+	SetActorTickInterval(0.1);
+	LastLocation = GetActorLocation();
+}
+
+void AAuraProjectile::Tick(float DeltaSeconds)
+{
+	if ((GetActorLocation() - LastLocation).Length() <= 10.f)
+	{
+		OnHit();
+		Destroy();
+	}else
+	{
+		LastLocation = GetActorLocation();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -39,6 +54,7 @@ void AAuraProjectile::BeginPlay()
 {
 	SetLifeSpan(LifeSpan);
 	Super::BeginPlay();
+	SetReplicateMovement(true);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
 	if (LoopingSoundComponent) LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound,GetRootComponent());
 }
@@ -68,10 +84,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	}
 	*/
 	//生成物不和自己以及友方单位碰撞
-	AActor* SourceActor = DamageParams.SourceAsc->GetAvatarActor();
-	if (SourceActor == OtherActor) return;
-	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceActor,OtherActor)) return;
-	
+	if (DamageParams.SourceAsc == nullptr) return;
+	if (AActor* SourceActor = DamageParams.SourceAsc->GetAvatarActor())
+	{
+		if (SourceActor == OtherActor) return;
+		if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceActor,OtherActor)) return;
+	}
 	
 	if (!bHit)
 	{
@@ -100,6 +118,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 void AAuraProjectile::Destroyed()
 {
+	if (LoopingSoundComponent)//当寿命结束时还未命中
+	{
+		LoopingSoundComponent->Stop();
+		LoopingSoundComponent->DestroyComponent();
+	}
+	
 	//在客户端未发生碰撞但已经销毁则发出声音和特效
 	if (!bHit&&!HasAuthority())
 	{

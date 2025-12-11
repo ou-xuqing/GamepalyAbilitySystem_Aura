@@ -3,7 +3,7 @@
 
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 #include "AbilitySystemComponent.h"
-#include "Player/AuraPlayerController.h"
+#include "Aura/Aura.h"
 
 class AAuraPlayerController;
 //AbilityTask模板
@@ -39,7 +39,7 @@ void UTargetDataUnderMouse::SendMouseHitData() const
 	
 	APlayerController* PC = Ability->GetCurrentActorInfo()->PlayerController.Get();
 	FHitResult Hit;
-	PC->GetHitResultUnderCursor(ECC_Visibility,false,Hit);
+	PC->GetHitResultUnderCursor(ECC_Target,false,Hit);
 
 	FGameplayAbilityTargetDataHandle DataHandle;
 	//本函数主要传送鼠标碰撞，所以用这个类来保存数据,因为他里面也只有一个HitResult

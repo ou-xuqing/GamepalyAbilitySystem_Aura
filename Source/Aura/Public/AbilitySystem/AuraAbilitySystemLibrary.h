@@ -102,6 +102,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
 	static void GetLiversWithinRadius(const UObject* WorldContextObject,TArray<AActor*>& OutOverlappingActor,const TArray<AActor*>& ActorsToIgnore,float Radius,FVector SphereOrigin);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void GetClosetTarget(int32 MaxTarget,const TArray<AActor*>& Actors,TArray<AActor*>& OutClosetTarget,const FVector& Origin);
 	
 	//通过Tag来检查，但此Tag不是GameplayTag
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
@@ -112,4 +115,10 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
 	static FGameplayEffectContextHandle ApplyDamageEffect(const FDamageAbilityEffectParams& DamageParams);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static TArray<FRotator> EvenlySpacedRotator(const FVector& Forward,const float& Spread,const FVector& Axis,const int32& NumVectors);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static TArray<FVector> EvenlyRotatedVector(const FVector& Forward,const float& Spread,const FVector& Axis,const int32& NumVectors);
 };

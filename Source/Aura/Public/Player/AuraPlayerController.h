@@ -10,6 +10,7 @@
 #include "UI/Widget/DamageTextComponent.h"
 #include "AuraPlayerController.generated.h"
 
+class UNiagaraSystem;
 class UAuraAbilitySystemComponent;
 class UAuraInputConfig;
 class UInputMappingContext;
@@ -36,6 +37,10 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly,Category="DamageTextWidget")
 	TSubclassOf<UDamageTextComponent> DamageTextComClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
+	
 private:
 	UPROPERTY(EditAnywhere,Category = "Input")
 	TObjectPtr<UInputMappingContext> AuraContext;

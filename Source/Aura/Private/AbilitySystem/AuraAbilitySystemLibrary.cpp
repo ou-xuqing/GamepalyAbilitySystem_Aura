@@ -315,6 +315,37 @@ void UAuraAbilitySystemLibrary::GetLiversWithinRadius(const UObject* WorldContex
 	}
 }
 
+void UAuraAbilitySystemLibrary::GetClosetTarget(int32 MaxTarget, const TArray<AActor*>& Actors,TArray<AActor*>& OutClosetTarget, const FVector& Origin)
+{
+	if (Actors.Num() <MaxTarget)
+	{
+		OutClosetTarget = Actors;
+		return;
+	}
+	
+	TArray<double> Distances;
+	for (auto& Actor : Actors)
+	{
+		double Distance = (Origin - Actor->GetActorLocation()).Length();
+		Distances.Add(Distance);
+	}
+	for (int32 i = 0;i < MaxTarget;i++)
+	{
+		double CurMin = Distances[i];
+		int32 CurIndex = i;
+		for (int32 j = i;j<Distances.Num();j++)
+		{
+			if (CurMin > Distances[j])
+			{
+				CurMin = Distances[j];
+				CurIndex = j;
+			}
+		}
+		Distances[CurIndex] = Distances[i];
+		OutClosetTarget.AddUnique(Actors[CurIndex]);
+	}
+}
+
 bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SeconderActor)
 {
 	const bool IsPlayer =  FirstActor->ActorHasTag(FName("Player")) && SeconderActor->ActorHasTag(FName("Player"));
@@ -352,5 +383,44 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	DamageParams.TargetAsc->ApplyGameplayEffectSpecToSelf(*DamageSpecHandle.Data);
 	
 	return EffectContextHandle;
+}
+
+TArray<FRotator> UAuraAbilitySystemLibrary::EvenlySpacedRotator(const FVector& Forward, const float& Spread,const FVector& Axis, const int32& NumVectors)
+{
+	TArray<FRotator> Rotators;
+	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread/2,Axis);
+	if (NumVectors > 1)
+	{
+		float DeltaSpread = Spread/(NumVectors - 1);
+		for (int32 i = 0; i < NumVectors; i++)
+		{
+			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i,Axis);
+			const FRotator CurRotation = Direction.Rotation();
+			Rotators.Add(CurRotation);
+		}
+	}else
+	{
+		Rotators.Add(Forward.Rotation());	
+	}
+	return Rotators;
+}
+
+TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVector(const FVector& Forward, const float& Spread,const FVector& Axis, const int32& NumVectors)
+{
+	TArray<FVector> Vectors;
+	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread/2,Axis);
+	if (NumVectors > 1)
+	{
+		float DeltaSpread = Spread/(NumVectors - 1);
+		for (int32 i = 0; i < NumVectors; i++)
+		{
+			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i,Axis);
+			Vectors.Add(Direction);
+		}
+	}else
+	{
+		Vectors.Add(Forward);	
+	}
+	return Vectors;
 }
 

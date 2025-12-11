@@ -13,7 +13,7 @@ DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven)
 DECLARE_DELEGATE_OneParam(FForeachAbility,const FGameplayAbilitySpec&)
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChanged,const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, int32/*NewLevel*/)
 DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquipped,const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/,const FGameplayTag& /*Slot(InputTag)*/, const FGameplayTag& /*PreSlot*/)
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FDeActivePassiveAbility,const FGameplayTag& /*AbilityTag*/)
 /**
  *ASC和AttributeSet定义在character和playerstate当中，其中玩家操控的character也包含了playerstate
  *通过ASC调用InitAbilityActorInfo来设置InOwnerActor和InAvatarActor
@@ -30,12 +30,13 @@ public:
 	FAbilitiesGiven AbilitiesGivenDelegate;
 	FAbilityStatusChanged AbilityStatusChangedDelegate;
 	FAbilityEquipped AbilityEquippedDelegate;
-	
+	FDeActivePassiveAbility DeActivePassiveAbilityDelegate;
 	bool bStartupAbilitiesGiven = false;
 	
 	void AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);//ASC is where to add Ability
 	void AddCharacterPassiveAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupPassiveAbilities);
-	
+
+	void AbilityInputTagPress(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 

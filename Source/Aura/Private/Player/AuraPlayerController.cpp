@@ -8,8 +8,8 @@
 #include "EnhancedInputComponent.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
-#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/AuraEnemyInterface.h"
@@ -91,9 +91,17 @@ void AAuraPlayerController::AutoRun()
 		if (DistanceToDestination < AutoRunAcceptanceRadius) bAutoRunning = false;
 	}
 }
-
+//移动使用Visibility，攻击使用Target
 void AAuraPlayerController::CursorTrace()
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_CursorTrace))
+	{
+		if (ThisActor)ThisActor->HighlightActor();
+		if (LastActor)LastActor->UnHighlightActor();
+		ThisActor = nullptr;
+		LastActor = nullptr;
+		return;
+	}
 	if (!GetHitResultUnderCursor(ECC_Visibility,false,CursorHit))return;
 	LastActor = ThisActor;
 	ThisActor =  CursorHit.GetActor();
@@ -108,16 +116,25 @@ void AAuraPlayerController::CursorTrace()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPress))
+	{
+		return;
+	}
 	if (InputTag.MatchesTag(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		bTargeting = ThisActor ? true : false;
      	bAutoRunning = false;
 	}
+	if (GetASC()) GetASC()->AbilityInputTagPress(InputTag);
 }
 
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputRelease))
+	{
+		return;
+	}
 	if (!InputTag.MatchesTag(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC())GetASC()->AbilityInputTagReleased(InputTag);
@@ -127,7 +144,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	if (!bTargeting && !bShiftKeyDown)
 	{
 		const APawn* ControlledPawn = GetPawn();
-		if (FollowTime<ShortPressThreshold&& ControlledPawn)
+		if (FollowTime<ShortPressThreshold && ControlledPawn)
 		{
 			if (UNavigationPath* NavPath =  UNavigationSystemV1::FindPathToLocationSynchronously(this,ControlledPawn->GetActorLocation(),CachedDestination))
 			{
@@ -142,6 +159,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 					bAutoRunning = true;
 				}
 			}
+			if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_CursorTrace))
+			{
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ClickNiagaraSystem,CachedDestination);
+			}
 		}
 		FollowTime = 0.f;
 		bTargeting = false;
@@ -150,6 +171,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
+	{
+		return;
+	}
 	if (!InputTag.MatchesTag(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC())GetASC()->AbilityInputTagHeld(InputTag);

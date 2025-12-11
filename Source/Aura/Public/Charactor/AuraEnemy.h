@@ -33,6 +33,8 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	
 	void HitReactTagChanged(FGameplayTag CallbackTag,int32 NewCount);
+	void StunTagChanged(FGameplayTag CallbackTag,int32 NewCount);
+
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthWidget;
@@ -62,6 +64,8 @@ protected:
 	float BaseWalkSpeed = 250.f;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
 	float LifeSpan = 5.f;
+	UPROPERTY(BlueprintReadOnly,Category="Combat")
+	bool bStunning = false;
 	
 	UPROPERTY(BlueprintReadWrite,Category="Combat")
 	AActor* CombatTarget;

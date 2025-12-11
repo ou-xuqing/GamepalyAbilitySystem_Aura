@@ -39,6 +39,8 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	//CombatInterface
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
 	
@@ -65,11 +67,16 @@ public:
 	virtual FOnDeath& GetOnDeathDelegate() override;
 
 	virtual void Knockback(FVector InKnockback) override;
+
+	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
+
+	virtual void SetBeingShocked_Implementation(bool bInBeingShocked) override;
+
+	virtual bool GetIsBeingShocked_Implementation() override;
 	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TArray<FTaggedMontage> AttackMontage;
 	//CombatInterface
-	
 	
 	UFUNCTION(NetMulticast,Reliable)//广播标记
 	virtual void MultiCastHandleDeath(FVector InDeathImpulse);//广播到客户端
@@ -98,6 +105,9 @@ protected:
 	
 	UPROPERTY()
 	bool bIsDead = false;
+
+	UPROPERTY(Replicated,BlueprintReadOnly)
+	bool bIsBeingShocked = false;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -150,6 +160,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UDebuffNiagaraComponent> StunDebuffComponent;
 private:
 	UPROPERTY(EditAnywhere,Category = "Abilities")//主要是给Aura设置技能而不是Enemy，可能优化给AC中比较好。Enemy技能设置函数在AuraASLibrary，在自己中调用。
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;

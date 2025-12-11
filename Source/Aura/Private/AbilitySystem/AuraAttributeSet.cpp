@@ -160,11 +160,13 @@ void UAuraAttributeSet::HandleInComingDamage(const FEffectProperties& Props)
 			SendXPEvent(Props);
 		}else
 		{
-						
-			FGameplayTagContainer TagContainer = FGameplayTagContainer();
-			TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
-			//props在PostEffect时存储（SetEffectProperties）
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);//通过Tag来调用能力（如果能力有该Tag就调用）
+			if (Props.TargetCharacter->Implements<UCombatInterface>() && !ICombatInterface::Execute_GetIsBeingShocked(Props.TargetCharacter))
+			{
+				FGameplayTagContainer TagContainer = FGameplayTagContainer();
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
+				//props在PostEffect时存储（SetEffectProperties）
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);//通过Tag来调用能力（如果能力有该Tag就调用）
+			}
 			if (UAuraAbilitySystemLibrary::IsKnockback(Props.EffectContextHandle))
 			{
 				if (Props.TargetCharacter->Implements<UCombatInterface>())

@@ -133,6 +133,11 @@ void AAuraEnemy:: BeginPlay()
 			this,
 			&AAuraEnemy::HitReactTagChanged
 	 	);//TagEvent事件有两种，一种是当该Tag数量发生变化时就调用，还有一种是当该Tag是新赋予或者完全删除时才调用
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().DeBuff_Stun,EGameplayTagEventType::NewOrRemoved).AddUObject(
+			this,
+			&AAuraEnemy::StunTagChanged
+			);
 	 	
 	 	OnHealthChangedSignature.Broadcast(AuraAttributeSet->GetHealth());
 	 	OnMaxHealthChangedSignature.Broadcast(AuraAttributeSet->GetMaxHealth());
@@ -148,6 +153,16 @@ void AAuraEnemy::HitReactTagChanged(FGameplayTag CallbackTag, int32 NewCount)
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"),bHitReacting);
 	}
 	
+}
+
+void AAuraEnemy::StunTagChanged(FGameplayTag CallbackTag, int32 NewCount)
+{
+	bStunning = NewCount > 0;
+	GetCharacterMovement()->MaxWalkSpeed = bStunning ? 0.f:BaseWalkSpeed;
+	if (AuraAIController&&AuraAIController->GetBlackboardComponent())//AuraAIController只在服务器有效
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Stunned"),bHitReacting);
+	}
 }
 
 void AAuraEnemy::InitAbilityActorInfo()//初始化ASC的Actor信息

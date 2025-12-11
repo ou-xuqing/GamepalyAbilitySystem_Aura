@@ -85,6 +85,10 @@ public:
 	FGameplayTag Abilities_Fire_FireBolt;
 	FGameplayTag CoolDown_Fire_FireBolt;
 	FGameplayTag Abilities_Lightning_Electrocute;
+
+	FGameplayTag Abilities_Passive_LifeSiphon;
+	FGameplayTag Abilities_Passive_ManaSiphon;
+	FGameplayTag Abilities_Passive_HaloOfProtection;
 	
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_LeftHand;
@@ -95,6 +99,12 @@ public:
 	FGameplayTag Montage_Attack_2;
 	FGameplayTag Montage_Attack_3;
 	FGameplayTag Montage_Attack_4;
+
+	FGameplayTag Player_Block_CursorTrace;
+	FGameplayTag Player_Block_InputPress;
+	FGameplayTag Player_Block_InputRelease;
+	FGameplayTag Player_Block_InputHeld;
+
 	
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResilience;
 
