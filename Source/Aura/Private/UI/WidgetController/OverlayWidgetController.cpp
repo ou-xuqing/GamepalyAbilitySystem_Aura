@@ -94,7 +94,7 @@ void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemCo
 	FForeachAbility ForeachAbilityDelegate;
 	ForeachAbilityDelegate.BindLambda([this](const FGameplayAbilitySpec& AbilitySpec)
 	{
-		FAuraAbilityInfo Info= AbilityInfo->GetAbilityInfo(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec),true);
+		FAuraAbilityInfo Info= AbilityInfo->FindInfoFromAbilityTag(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec),true);
 		Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
 		AbilityInfoDelegate.Broadcast(Info);//OverlapWidget接受广播的值
 	});
@@ -133,7 +133,7 @@ void UOverlayWidgetController::OnEquippedAbilityChanged(const FGameplayTag& Abil
 	AbilityInfoDelegate.Broadcast(PreInfo);
 
 	FAuraAbilityInfo Info;
-	Info = AbilityInfo->GetAbilityInfo(AbilityTag);
+	Info = AbilityInfo->FindInfoFromAbilityTag(AbilityTag);
 	Info.InputTag = Slot;
 	AbilityInfoDelegate.Broadcast(Info);
 }

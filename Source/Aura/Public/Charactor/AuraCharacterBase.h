@@ -8,6 +8,7 @@
 #include "Debuff/DebuffNiagaraComponent.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
+#include "PassiveNiagara/PassiveNiagaraComponent.h"
 #include "AuraCharacterBase.generated.h"
 
 class UNiagaraSystem;
@@ -172,5 +173,17 @@ private:
 	
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	TObjectPtr<UAnimMontage> HitReactMontage;
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> HaloPassiveNiagaraComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> LifePassiveNiagaraComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> ManaPassiveNiagaraComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> PassiveAttachComponent;
 	
 };

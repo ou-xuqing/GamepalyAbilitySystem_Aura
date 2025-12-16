@@ -31,7 +31,7 @@ void USpellMenuWidgetController::BindCallbacksToDependencies()
 			SetSpendPointsAndEquipped(StatusTag,CurrentSpellPoints,bSpendPoints,bEquipped);
 			OnSpellGlobeSelectDelegate.Broadcast(bSpendPoints,bEquipped,OutDescription,OutDescriptionNextLevel);
 		}
-		FAuraAbilityInfo Info = AbilityInfo->GetAbilityInfo(AbilityTag);
+		FAuraAbilityInfo Info = AbilityInfo->FindInfoFromAbilityTag(AbilityTag);
 		Info.AbilityStatus = StatusTag;
 		AbilityInfoDelegate.Broadcast(Info);
 	});
@@ -56,7 +56,7 @@ void USpellMenuWidgetController::SpellGlobeSelected(const FGameplayTag& AbilityT
 {
 	if (bWaitForEquipped)//关闭EquippedSpell动画，注意此时是SelectedAbility是上次选择的Ability
 	{
-		FGameplayTag AbilityType = AbilityInfo->GetAbilityInfo(SelectedAbility.AbilityTag).AbilityType;
+		FGameplayTag AbilityType = AbilityInfo->FindInfoFromAbilityTag(SelectedAbility.AbilityTag).AbilityType;
 		StopWaitForEquippedDelegate.Broadcast(AbilityType);
 		bWaitForEquipped = false;
 	}
@@ -82,9 +82,11 @@ void USpellMenuWidgetController::SpellGlobeSelected(const FGameplayTag& AbilityT
 	SelectedAbility.AbilityStatus = AbilityStatus;
 	SelectedAbility.AbilityTag = AbilityTag;
 	bool bEquipped = false; bool bSpendPoints = false;
-
-	//获得技能的描述
-	GetAuraASC()->GetDescriptionFromAbilityTag(AbilityTag,OutDescription,OutDescriptionNextLevel);
+	if (AbilityStatus != GameplayTags.Abilities_Status_Locked)
+	{
+		//获得技能的描述
+		GetAuraASC()->GetDescriptionFromAbilityTag(AbilityTag,OutDescription,OutDescriptionNextLevel);
+	}
 	//计算按键是否可以使用
 	SetSpendPointsAndEquipped(AbilityStatus,SpellPoints,bSpendPoints,bEquipped);
 	//向蓝图发送广播
@@ -112,14 +114,14 @@ void USpellMenuWidgetController::SetSpendPointsAndEquipped(const FGameplayTag& S
 
 void USpellMenuWidgetController::SpendPointsPressed()
 {
-	GetAuraASC()->ServerSpendSpellPoints_Implementation(SelectedAbility.AbilityTag);
+	GetAuraASC()->ServerSpendSpellPoints(SelectedAbility.AbilityTag);
 }
 
 void USpellMenuWidgetController::GlobeDeSelect()
 {
 	if (bWaitForEquipped)//关闭EquippedSpell动画
 	{
-		FGameplayTag AbilityType = AbilityInfo->GetAbilityInfo(SelectedAbility.AbilityTag).AbilityType;
+		FGameplayTag AbilityType = AbilityInfo->FindInfoFromAbilityTag(SelectedAbility.AbilityTag).AbilityType;
 		StopWaitForEquippedDelegate.Broadcast(AbilityType);
 		bWaitForEquipped = false;
 	}
@@ -131,13 +133,13 @@ void USpellMenuWidgetController::GlobeDeSelect()
 void USpellMenuWidgetController::EquippedPressed()//按下装备按键
 {
 	bWaitForEquipped = true;
-	FGameplayTag AbilityType = AbilityInfo->GetAbilityInfo(SelectedAbility.AbilityTag).AbilityType;
+	FGameplayTag AbilityType = AbilityInfo->FindInfoFromAbilityTag(SelectedAbility.AbilityTag).AbilityType;
 	WaitForEquippedDelegate.Broadcast(AbilityType);
 
 	//EquipSpellGlobe根据InputTag来确定AbilityInfo是否发给自身,所以要事先记录技能的InputTag用来后续清除已经装备的技能
 	if (SelectedAbility.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped))
 	{
-		SelectedSlot = GetAuraASC()->GetInputTagFromAbilityTag(SelectedAbility.AbilityTag);
+		SelectedSlot = GetAuraASC()->GetSlotFromAbilityTag(SelectedAbility.AbilityTag);
 	}
 }
 
@@ -146,7 +148,7 @@ void USpellMenuWidgetController::EquippedSpellGlobePressed(const FGameplayTag& S
 	//没有按下Equipped
 	if (!bWaitForEquipped) return;
 	//所选技能类型和装备栏类型不同
-	if (!AbilityType.MatchesTagExact(AbilityInfo->GetAbilityInfo(SelectedAbility.AbilityTag).AbilityType)) return;
+	if (!AbilityType.MatchesTagExact(AbilityInfo->FindInfoFromAbilityTag(SelectedAbility.AbilityTag).AbilityType)) return;
 	//对技能操作需要在ASC中进行
 	GetAuraASC()->ServerEquipAbility(Slot,SelectedAbility.AbilityTag);
 }
@@ -163,14 +165,14 @@ void USpellMenuWidgetController::OnEquipSpellGlobePressed(const FGameplayTag& Ab
 	PreInfo.AbilityStatus = GameplayTags.Abilities_Status_UnLocked;
 	AbilityInfoDelegate.Broadcast(PreInfo);
 
-	FAuraAbilityInfo Info = AbilityInfo->GetAbilityInfo(AbilityTag);
+	FAuraAbilityInfo Info = AbilityInfo->FindInfoFromAbilityTag(AbilityTag);
 	Info.AbilityStatus = Status;
 	Info.InputTag = Slot;
 	AbilityInfoDelegate.Broadcast(Info);
 
 	//播放音乐,SpellGlobeButton对该委托进行绑定，因为SpellGlobeButton拥有AbilityTag
 	OnEquippedSkillDelegate.Broadcast(AbilityTag);
-	StopWaitForEquippedDelegate.Broadcast(AbilityInfo->GetAbilityInfo(AbilityTag).AbilityType);//关闭EquipSpell动画
+	StopWaitForEquippedDelegate.Broadcast(AbilityInfo->FindInfoFromAbilityTag(AbilityTag).AbilityType);//关闭EquipSpell动画
 }
 
 

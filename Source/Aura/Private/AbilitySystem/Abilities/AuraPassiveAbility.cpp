@@ -20,7 +20,7 @@ void UAuraPassiveAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UAuraPassiveAbility::ReceiveDeactivate(const FGameplayTag& InAbilityTag)//切换技能时结束技能
 {
-	if (AbilityTags.HasTagExact(InAbilityTag))
+	if (GetAssetTags().HasTagExact(InAbilityTag))
 	{
 		EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 	}

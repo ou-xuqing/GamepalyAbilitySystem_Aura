@@ -14,6 +14,7 @@ DECLARE_DELEGATE_OneParam(FForeachAbility,const FGameplayAbilitySpec&)
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChanged,const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, int32/*NewLevel*/)
 DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquipped,const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/,const FGameplayTag& /*Slot(InputTag)*/, const FGameplayTag& /*PreSlot*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FDeActivePassiveAbility,const FGameplayTag& /*AbilityTag*/)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FActivatePassiveNiagara,const FGameplayTag& /*AbilityTag*/, bool)
 /**
  *ASC和AttributeSet定义在character和playerstate当中，其中玩家操控的character也包含了playerstate
  *通过ASC调用InitAbilityActorInfo来设置InOwnerActor和InAvatarActor
@@ -31,6 +32,8 @@ public:
 	FAbilityStatusChanged AbilityStatusChangedDelegate;
 	FAbilityEquipped AbilityEquippedDelegate;
 	FDeActivePassiveAbility DeActivePassiveAbilityDelegate;
+	FActivatePassiveNiagara ActivatePassiveNiagaraDelegate;
+	
 	bool bStartupAbilitiesGiven = false;
 	
 	void AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);//ASC is where to add Ability
@@ -47,8 +50,13 @@ public:
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayAbilitySpec* GetSpecFromTag(const FGameplayTag& AbilityTag);
-	FGameplayTag GetInputTagFromAbilityTag(const FGameplayTag& AbilityTag);
+	FGameplayTag GetSlotFromAbilityTag(const FGameplayTag& AbilityTag);//Slot == InputTag
 	bool GetDescriptionFromAbilityTag(const FGameplayTag& AbilityTag,FString& OutDescription,FString& OutDescriptionNextLevel);
+	bool HasAbilityInSlot(const FGameplayTag& Slot);
+	FGameplayAbilitySpec* GetSpecFromSlot(const FGameplayTag& Slot);
+	bool IsPassiveAbility(const FGameplayAbilitySpec& AbilitySpec) const;
+	static bool IsAbilityHasSlot(const FGameplayAbilitySpec& AbilitySpec);
+	void AssignSlotToAbility(const FGameplayTag& Slot,FGameplayAbilitySpec& AbilitySpec);
 	
 	void UpdateAttribute(const FGameplayTag& AttributeTag);
 
@@ -60,21 +68,24 @@ public:
 	UFUNCTION(Server,Reliable)
 	void ServerEquipAbility(const FGameplayTag& Slot,const FGameplayTag& AbilityTag);
 
-	UFUNCTION(Client,Reliable)
-	void ClientEquipAbility(const FGameplayTag& AbilityTag,const FGameplayTag& Status,const FGameplayTag& Slot,const FGameplayTag& PreSlot);
-
-	void ClearSlot(FGameplayAbilitySpec* Spec);
+	static void ClearSlot(FGameplayAbilitySpec* Spec);
 	void ClearAbilityOfSlot(const FGameplayTag& Slot);
-	bool AbilityHasSlot(const FGameplayTag& Slot,FGameplayAbilitySpec* Spec);
+	static bool AbilityHasSlot(const FGameplayTag& Slot,FGameplayAbilitySpec* Spec);
 protected:
 
 	UFUNCTION(Server,Reliable)
 	void ServerUpdateAttribute(const FGameplayTag& AttributeTag);
 	
 	virtual void OnRep_ActivateAbilities() override;
-	
+	UFUNCTION(Client,Reliable)
+	void ClientEquipAbility(const FGameplayTag& AbilityTag,const FGameplayTag& Status,const FGameplayTag& Slot,const FGameplayTag& PreSlot);
+
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle GameplayEffectHandle);
+
 	UFUNCTION(Client, Reliable)
 	void ClientAbilityStatusChanged(const FGameplayTag& AbilityTag , const FGameplayTag& StatusTag,int32 NewLevel);
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastActivatePassiveEffect(const FGameplayTag& PassiveSpellTag,bool IsActive);
 };

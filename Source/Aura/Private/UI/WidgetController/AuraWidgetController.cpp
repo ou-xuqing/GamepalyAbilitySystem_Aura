@@ -34,7 +34,7 @@ void UAuraWidgetController::BroadcastAbilityInfo()
 	FForeachAbility ForeachAbilityDelegate;
 	ForeachAbilityDelegate.BindLambda([this](const FGameplayAbilitySpec& AbilitySpec)
 	{
-		FAuraAbilityInfo Info= AbilityInfo->GetAbilityInfo(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec),true);
+		FAuraAbilityInfo Info= AbilityInfo->FindInfoFromAbilityTag(UAuraAbilitySystemComponent::GetAbilityTagFromSpec(AbilitySpec),true);
 		Info.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(AbilitySpec);
 		Info.AbilityStatus = UAuraAbilitySystemComponent::GetStatusTagFromSpec(AbilitySpec);
 		AbilityInfoDelegate.Broadcast(Info);//OverlapWidget接受广播的值

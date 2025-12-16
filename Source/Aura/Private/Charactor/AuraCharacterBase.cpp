@@ -35,6 +35,21 @@ AAuraCharacterBase::AAuraCharacterBase()
 	StunDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("StunDebuffComponent");
 	StunDebuffComponent->SetupAttachment(GetRootComponent());
 	StunDebuffComponent->DebuffTag = FAuraGameplayTags::Get().DeBuff_Stun;
+
+	PassiveAttachComponent = CreateDefaultSubobject<USceneComponent>("PassiveAttachComponent");
+	PassiveAttachComponent->SetupAttachment(GetRootComponent());
+
+	HaloPassiveNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("HaloPassiveNiagaraComponent");
+	HaloPassiveNiagaraComponent->SetupAttachment(PassiveAttachComponent);
+	HaloPassiveNiagaraComponent->PassiveSpellTag = FAuraGameplayTags::Get().Abilities_Passive_HaloOfProtection;
+	
+	LifePassiveNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("LifePassiveNiagaraComponent");
+	LifePassiveNiagaraComponent->SetupAttachment(PassiveAttachComponent);
+	LifePassiveNiagaraComponent->PassiveSpellTag = FAuraGameplayTags::Get().Abilities_Passive_LifeSiphon;
+	
+	ManaPassiveNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("ManaPassiveNiagaraComponent");
+	ManaPassiveNiagaraComponent->SetupAttachment(PassiveAttachComponent);
+	ManaPassiveNiagaraComponent->PassiveSpellTag = FAuraGameplayTags::Get().Abilities_Passive_ManaSiphon;
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const

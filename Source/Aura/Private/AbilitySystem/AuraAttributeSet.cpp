@@ -206,11 +206,15 @@ void UAuraAttributeSet::HandleInComingXP(const FEffectProperties& Props)
 		int32 NumLevelUPs = Level - CurLevel;
 		if (NumLevelUPs > 0)
 		{
-			const int32 AttributeReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.TargetCharacter,CurLevel);
-			const int32 SpellPointReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.TargetCharacter,CurLevel);
-
 			IPlayerInterface::Execute_LevelUP(Props.SourceCharacter);//生成升级特效
 			IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter,NumLevelUPs);//处理升级效果（解锁新技能，修改等级）
+			int32 AttributeReward = 0;
+			int32 SpellPointReward = 0;
+			for (int i = 0;i<NumLevelUPs;i++)
+			{
+				AttributeReward += IPlayerInterface::Execute_GetAttributePointsReward(Props.TargetCharacter,CurLevel + i);
+				SpellPointReward += IPlayerInterface::Execute_GetSpellPointsReward(Props.TargetCharacter,CurLevel + i);
+			}
 			IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter,AttributeReward);
 			IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter,SpellPointReward);
 
