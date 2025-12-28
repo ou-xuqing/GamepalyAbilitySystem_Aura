@@ -119,6 +119,11 @@ FOnDeath& AAuraCharacterBase::GetOnDeathDelegate()
 	return OnDeath;
 }
 
+FOnDamage& AAuraCharacterBase::GetOnDamageDelegate()
+{
+	return OnDamage;
+}
+
 void AAuraCharacterBase::Knockback(FVector InKnockback)
 {
 	LaunchCharacter(InKnockback,true,true);
@@ -157,7 +162,7 @@ void AAuraCharacterBase::MultiCastHandleDeath_Implementation(FVector InDeathImpu
 	GetMesh()->SetEnableGravity(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic,ECR_Block);
-	GetMesh()->AddImpulse(InDeathImpulse * 100,NAME_None,true);
+	GetMesh()->AddImpulse(InDeathImpulse * 10,NAME_None,true);
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
@@ -183,6 +188,13 @@ void AAuraCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAuraCharacterBase,bIsBeingShocked);
+}
+
+float AAuraCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,class AController* EventInstigator, AActor* DamageCauser)
+{
+	const float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	OnDamage.Broadcast(Damage);
+	return Damage;
 }
 
 //可以使用TMap<Tag,FName>来进行查找，这里使用三个if是因为本项目只有这三个

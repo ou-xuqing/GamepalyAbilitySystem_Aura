@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Interaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 
 struct  AuraDamageStatic
 {
@@ -130,12 +131,13 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 		SourceLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
 	}
 	int32 TargetLevel = 1;
-	if (SourceAvatar->Implements<UCombatInterface>())
+	if (TargetAvatar->Implements<UCombatInterface>())
 	{
-		TargetLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
+		TargetLevel = ICombatInterface::Execute_GetPlayerLevel(TargetAvatar);
 	}
 	
 	const FGameplayEffectSpec& EffectSpec = ExecutionParams.GetOwningSpec();
+	FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
 	const FGameplayTagContainer* SourceTags = EffectSpec.CapturedSourceTags.GetAggregatedTags();
 	const FGameplayTagContainer* TargetTags = EffectSpec.CapturedSourceTags.GetAggregatedTags();
 	
@@ -156,7 +158,6 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	bool bKnockback = FMath::RandRange(1.f,100.f) < KnockbackChance;
 	if (bKnockback)
 	{
-		FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
 		UAuraAbilitySystemLibrary::SetIsKnockback(EffectContextHandle,bKnockback);
 	}
 	
@@ -172,6 +173,24 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 		float DamageTypeValue = EffectSpec.GetSetByCallerMagnitude(Pair.Key,false);//通过Tag取出相应Ability的伤害,在Effect创建时Tag与Value进行的绑定
 		//百分比减伤
 		DamageTypeValue *= (100.f - Resistance) /100.f;
+		
+		if (UAuraAbilitySystemLibrary::IsRadialDamage(EffectContextHandle))
+		{
+			
+			ICombatInterface* CombatInterface = Cast<ICombatInterface>(TargetAvatar);
+			//会导致多次添加lambda函数，可用FDelegateHandle来管理多播委托中单个绑定函数（没用过）
+			CombatInterface->GetOnDamageDelegate().AddLambda([&DamageTypeValue](const float DamageAmount)
+			{
+				DamageTypeValue = DamageAmount;
+			});
+			//使用UE自带的函数来计算范围衰减伤害，里面有takeDamage函数，在CharacterBase中重写，会广播OnDamage。就是在上面绑定的委托。
+			UGameplayStatics::ApplyRadialDamageWithFalloff(SourceAvatar,DamageTypeValue,0.f,
+				UAuraAbilitySystemLibrary::GetRadialDamageOrigin(EffectContextHandle),
+				UAuraAbilitySystemLibrary::GetRadialDamageInnerRadius(EffectContextHandle),
+				UAuraAbilitySystemLibrary::GetRadialDamageOuterRadius(EffectContextHandle),
+				1.f,UDamageType::StaticClass(),TArray<AActor*>(),SourceAvatar,nullptr);
+		}
+		
 		Damage += DamageTypeValue;
 	}
 	
@@ -183,7 +202,6 @@ void UExecCal_Damage::Execute_Implementation(const FGameplayEffectCustomExecutio
 	//Block
 	const bool bBlocked = FMath::RandRange(1,100) < TargetBlockChane;
 	Damage = bBlocked ? Damage * 0.5f : Damage;
-	FGameplayEffectContextHandle EffectContextHandle = EffectSpec.GetContext();
 	UAuraAbilitySystemLibrary::SetBlocked(EffectContextHandle,bBlocked);
 	
 	//Critical

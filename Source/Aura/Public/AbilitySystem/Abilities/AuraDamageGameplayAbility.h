@@ -18,8 +18,15 @@ class AURA_API UAuraDamageGameplayAbility : public UAuraGameplayAbility
 public:
 	UFUNCTION(BlueprintCallable)
 	void CauseDamage(AActor* Target);
+
+	//默认在击飞方向增加斜向上45.f
 	UFUNCTION(BlueprintCallable)
-	FDamageAbilityEffectParams MakeDamageAbilityEffectParams(AActor* Target = nullptr) const;
+	virtual FDamageAbilityEffectParams MakeDamageAbilityEffectParams(AActor* Target = nullptr,
+		FVector InRadialDamageOrigin = FVector::ZeroVector,
+		bool bOverrideKnockbackDirection = false,FVector OverrideKnockbackDirection = FVector::ZeroVector,
+		bool bOverrideDeathImpulse = false,FVector OverrideDeathImpulse = FVector::ZeroVector,
+		bool bOverridePitch = false,float OverridePitch = 45.f) const;
+
 protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
@@ -47,8 +54,19 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly,Category="Damage")
 	float KnockbackMagnitude = 500.f;
+	
 	UPROPERTY(EditDefaultsOnly,Category="Damage")
 	float KnockbackChance = 20.f;
+
+	UPROPERTY(EditDefaultsOnly,Category="Damage")
+	bool bIsRadialDamage = false;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Damage")
+	float RadialDamageInnerRadius = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Damage")
+	float RadialDamageOuterRadius = 0.f;
+	
 	
 	float GetDamage(int32 InLevel);
 };

@@ -50,7 +50,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAuraAbility")
 	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
 
-	//蓝图或者PostAttribute中调用Get
+	/*
+	 *  GetEffectContextProps
+	 *  蓝图或者PostAttribute中调用Get
+	 */
 	UFUNCTION(BlueprintPure , Category="AuraAbilitySystemLibrary|Effects")
 	static bool IsBlocked(const FGameplayEffectContextHandle& EffectContextHandle);
 
@@ -80,16 +83,31 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
 	static FVector GetKnockback(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static bool IsRadialDamage(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static float GetRadialDamageInnerRadius(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static float GetRadialDamageOuterRadius(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle);
 	
-	//ExecCal_Damage中调用Set
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static FVector GetRadialDamageOrigin(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle);
+	
+	/*
+	 * SetEffectContextProps
+	 * ExecCal_Damage,ApplyEffect中调用Set
+	 */
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图是不建议有set的，最好在C++中set，但是本次选择在蓝图中暴露set
-	static void SetBlocked(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bBlocked);
+	static void SetBlocked(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bInBlocked);
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图中未加const的参数默认为输出，所以要加上UPARAM来标志为输入
-	static void SetCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bCriticalHit);
+	static void SetCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bInCriticalHit);
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")//蓝图中未加const的参数默认为输出，所以要加上UPARAM来标志为输入
-	static void SetIsKnockback(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bKnockback);
+	static void SetIsKnockback(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bInKnockback);
 	
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
 	static void SetDeBuffParams(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bIsSuccessfulDeBuff,float DeBuffDamage,float DeBuffDuration,float DeBuffFrequency,FGameplayTag DamageType);
@@ -99,7 +117,22 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
 	static void SetKnockback(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,FVector InKnockback);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static void SetIsRadialDamage(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,bool bInRadialDamage);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static void SetRadialDamageInnerRadius(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,float InRadialDamageInnerRadius);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static void SetRadialDamageOuterRadius(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,float InRadialDamageOuterRadius);
+
+	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|Effects")
+	static void SetRadialDamageOrigin(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle,FVector InRadialDamageOrigin);
 	
+	/*
+	 * GameplayMechanics
+	 */
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
 	static void GetLiversWithinRadius(const UObject* WorldContextObject,TArray<AActor*>& OutOverlappingActor,const TArray<AActor*>& ActorsToIgnore,float Radius,FVector SphereOrigin);
 
@@ -121,4 +154,6 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category= "AuraAbilitySystemLibrary|GameplayMechanics")
 	static TArray<FVector> EvenlyRotatedVector(const FVector& Forward,const float& Spread,const FVector& Axis,const int32& NumVectors);
+	
+
 };

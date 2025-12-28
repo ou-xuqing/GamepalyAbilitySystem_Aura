@@ -41,6 +41,8 @@ public:
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	//CombatInterface
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
@@ -67,6 +69,8 @@ public:
 
 	virtual FOnDeath& GetOnDeathDelegate() override;
 
+	virtual FOnDamage& GetOnDamageDelegate() override;
+	
 	virtual void Knockback(FVector InKnockback) override;
 
 	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
@@ -88,6 +92,8 @@ protected:
 	FOnASCRegister OnAscRegister;
 
 	FOnDeath OnDeath;
+
+	FOnDamage OnDamage;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;

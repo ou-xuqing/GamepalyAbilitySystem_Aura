@@ -6,7 +6,6 @@
 #include "AuraAbilityTypes.h"
 #include "GameFramework/Actor.h"
 #include "GameplayCueNotifyTypes.h"
-#include "GameplayEffectTypes.h"
 #include "AuraProjectile.generated.h"
 
 

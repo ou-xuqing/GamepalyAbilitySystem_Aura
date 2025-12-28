@@ -8,6 +8,49 @@
 #include "Interaction/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+FString UAuraBeamSpell::GetDescription(int Level)
+{
+	//三个Get在父类中实现
+	const float ManaCost = GetManaCost(Level);
+	const float CooldownTime = GetCooldown(Level);
+	const int32 CurDamage = GetDamage(Level);
+	
+	return FString::Printf(TEXT("<Tile>Electrocute</> \n"
+		"<Small>Level: </><Level>%d</> \n"
+		"<Small>ManaCost: </><ManaCost>%.1f</> \n"
+		"<Small>Cooldown: </><Cooldown>%.1f</> \n"
+		"<Default>Launch %d Electrocute,"
+		"Cause </><Damage> %d </> <Default>Damage</> \n"
+		),
+		Level,
+		ManaCost,
+		CooldownTime,
+		FMath::Min(Level,NumsToAdditionalTargets),
+		CurDamage
+		);
+}
+
+FString UAuraBeamSpell::GetDescriptionNextLevel(int Level)
+{
+	const float ManaCost = GetManaCost(Level);
+	const float CooldownTime = GetCooldown(Level);
+	const int32 CurDamage = GetDamage(Level);
+	
+	return FString::Printf(TEXT("<Tile>Next Level</> \n"
+		"<Small>Level: </><Level>%d</> \n"
+		"<Small>ManaCost: </><ManaCost>%.1f</> \n"
+		"<Small>Cooldown: </><Cooldown>%.1f</> \n"
+		"<Default>Launch %d Electrocute,"
+		"Cause </><Damage> %d </> <Default>Damage</> \n"
+		),
+		Level,
+		ManaCost,
+		CooldownTime,
+		FMath::Min(Level,NumsToAdditionalTargets),
+		CurDamage
+		);
+}
+
 void UAuraBeamSpell::StoreMouseDataInfo(const FHitResult& HitResult)
 {
 	if (HitResult.bBlockingHit)

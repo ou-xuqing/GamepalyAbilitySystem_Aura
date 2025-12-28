@@ -52,7 +52,7 @@ FString UAuraFireBolt::GetDescriptionNextLevel(int Level)
 		);
 }
 
-void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag,bool bIsOverridePitch, float OverridePitch,const AActor* Target)
+void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag,bool bIsOverridePitch, float OverridePitch, AActor* Target)
 {
 	const bool bIsOnServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (!bIsOnServer)return;
@@ -82,7 +82,7 @@ void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, co
 			GetOwningActorFromActorInfo(),
 			Cast<APawn>(GetAvatarActorFromActorInfo()),
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-		Projectile->DamageParams = MakeDamageAbilityEffectParams();
+		Projectile->DamageParams = MakeDamageAbilityEffectParams(Target);
 		if (Target && Target->Implements<UCombatInterface>())
 		{
 			Projectile->ProjectileMovement->HomingTargetComponent = Target->GetRootComponent();

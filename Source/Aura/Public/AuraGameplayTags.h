@@ -83,9 +83,11 @@ public:
 	FGameplayTag Abilities_Type_None;
 	
 	FGameplayTag Abilities_Fire_FireBolt;
-	FGameplayTag CoolDown_Fire_FireBolt;
 	FGameplayTag Abilities_Lightning_Electrocute;
-
+	FGameplayTag Abilities_Arcane_ArcaneShader;
+	
+	FGameplayTag CoolDown_Fire_FireBolt;
+	
 	FGameplayTag Abilities_Passive_LifeSiphon;
 	FGameplayTag Abilities_Passive_ManaSiphon;
 	FGameplayTag Abilities_Passive_HaloOfProtection;

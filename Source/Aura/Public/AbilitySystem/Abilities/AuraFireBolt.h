@@ -19,7 +19,7 @@ public:
 	virtual FString GetDescriptionNextLevel(int Level) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void SpawnProjectiles(const FVector& ProjectileTargetLocation,const FGameplayTag& SocketTag,bool bIsOverridePitch = false,float OverridePitch = 0.f,const AActor* Target = nullptr);
+	void SpawnProjectiles(const FVector& ProjectileTargetLocation,const FGameplayTag& SocketTag,bool bIsOverridePitch = false,float OverridePitch = 0.f,AActor* Target = nullptr);
 
 	UPROPERTY(EditDefaultsOnly,Category="Spell")
 	float SpawnSpread = 90.f;
