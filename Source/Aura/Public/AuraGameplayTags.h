@@ -83,8 +83,10 @@ public:
 	FGameplayTag Abilities_Type_None;
 	
 	FGameplayTag Abilities_Fire_FireBolt;
+	FGameplayTag Abilities_Fire_FireBlast;
 	FGameplayTag Abilities_Lightning_Electrocute;
 	FGameplayTag Abilities_Arcane_ArcaneShader;
+
 	
 	FGameplayTag CoolDown_Fire_FireBolt;
 	
@@ -106,6 +108,8 @@ public:
 	FGameplayTag Player_Block_InputPress;
 	FGameplayTag Player_Block_InputRelease;
 	FGameplayTag Player_Block_InputHeld;
+
+	FGameplayTag GameplayCue_FireBlast;
 
 	
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResilience;

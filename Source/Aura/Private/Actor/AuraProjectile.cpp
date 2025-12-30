@@ -39,7 +39,7 @@ AAuraProjectile::AAuraProjectile()
 
 void AAuraProjectile::Tick(float DeltaSeconds)
 {
-	if ((GetActorLocation() - LastLocation).Length() <= 10.f)
+	if ((GetActorLocation() - LastLocation).Length() <= MinCurToLast)
 	{
 		OnHit();
 		Destroy();
@@ -84,12 +84,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	}
 	*/
 	//生成物不和自己以及友方单位碰撞
-	if (DamageParams.SourceAsc == nullptr) return;
-	if (AActor* SourceActor = DamageParams.SourceAsc->GetAvatarActor())
-	{
-		if (SourceActor == OtherActor) return;
-		if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceActor,OtherActor)) return;
-	}
+	if (!IsCanOverlap(OtherActor)) return;
 	
 	if (!bHit)
 	{
@@ -99,6 +94,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
+			DamageParams.TargetAsc = TargetASC;
 			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageParams);
 		}
 		
@@ -107,6 +103,17 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	{
 		bHit = true;
 	}
+}
+
+bool AAuraProjectile::IsCanOverlap(AActor* OtherActor) const
+{
+	if (DamageParams.SourceAsc == nullptr) return false;
+	if (AActor* SourceActor = DamageParams.SourceAsc->GetAvatarActor())
+	{
+		if (SourceActor == OtherActor) return false; 
+		if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceActor,OtherActor)) return false;
+	}
+	return true;
 }
 
 

@@ -19,6 +19,7 @@ class IAuraEnemyInterface;
 /**
  * 增强输入，设置InputMappingContext和InputAction，在BeginPlay和SetupInputComponent和move中绑定增强输入
  * 在playertick和cursortrace中调用LastActor与ThisActor的高光函数
+ * 所有不瞄准就可以释放的技能放在鼠标左键时都与移动产生冲突
  */
 UCLASS()
 class AURA_API AAuraPlayerController : public APlayerController
