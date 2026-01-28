@@ -54,4 +54,7 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void LevelUP();
+	
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	void SaveProgress(const FName& CheckPointTag);
 };

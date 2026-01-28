@@ -38,7 +38,7 @@ public:
 	virtual void LevelUP_Implementation() override;//生成技能特效（多播给所有客户端）
 	virtual int32 GetAttributePoints_Implementation() const override;
 	virtual int32 GetSpellPoints_Implementation() const override;
-
+	virtual void SaveProgress_Implementation(const FName& CheckPointTag) override;
 	
 	/*Combat Interface*/
 	virtual int32 GetPlayerLevel_Implementation() override;

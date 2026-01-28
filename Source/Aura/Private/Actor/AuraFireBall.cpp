@@ -119,13 +119,13 @@ void AAuraFireBall::FindNearActorAndExplosionDamage()
 	//补充参数，在计算伤害时会调用UE的范围伤害函数，通过给出的范围来计算enemy受到多少伤害
 	ExplosionDamageEffectParams.bIsRadialDamage = true;
 	ExplosionDamageEffectParams.RadialDamageOrigin = GetActorLocation();
-	ExplosionDamageEffectParams.RadialDamageInnerRadius = 50.f;
-	ExplosionDamageEffectParams.RadialDamageOuterRadius = 200.f;
+	ExplosionDamageEffectParams.RadialDamageInnerRadius = ExplosionMinRadius;
+	ExplosionDamageEffectParams.RadialDamageOuterRadius = ExplosionMaxRadius;
 
 	TArray<AActor*> NearActors;
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(SpellActor);
-	UAuraAbilitySystemLibrary::GetLiversWithinRadius(SpellActor,NearActors,IgnoreActors,200.f,GetActorLocation());
+	UAuraAbilitySystemLibrary::GetLiversWithinRadius(SpellActor,NearActors,IgnoreActors,ExplosionMaxRadius,GetActorLocation());
 
 	for (AActor* NearActor : NearActors)
 	{

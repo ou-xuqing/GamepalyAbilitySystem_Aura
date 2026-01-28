@@ -39,14 +39,20 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditDefaultsOnly)
-	float HomingRadius = 10.f;
+	UPROPERTY(EditDefaultsOnly,Category="Homing")
+	float HomingRadius = 500.f;
 	
-	UPROPERTY(EditDefaultsOnly,Category="Spell")
+	UPROPERTY(EditDefaultsOnly,Category="Homing")
 	float HomingMagnitudeMin = 4800.f;
 	
-	UPROPERTY(EditDefaultsOnly,Category="Spell")
+	UPROPERTY(EditDefaultsOnly,Category="Homing")
 	float HomingMagnitudeMax = 9600.f;
+
+	UPROPERTY(EditDefaultsOnly,Category="Explosion")
+    float ExplosionMaxRadius = 200.f;
+
+	UPROPERTY(EditDefaultsOnly,Category="Explosion")
+	float ExplosionMinRadius = 50.f;
 
 	bool bHoming = false;
 
