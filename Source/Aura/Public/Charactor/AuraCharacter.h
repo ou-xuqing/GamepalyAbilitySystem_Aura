@@ -55,6 +55,8 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> TopDownCameraComponent;
+
+	void LoadProgress();
 private:
 	virtual void InitAbilityActorInfo()override ;
 

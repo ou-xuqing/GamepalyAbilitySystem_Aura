@@ -79,9 +79,9 @@ void UOverlayWidgetController::BindCallbacksToDependencies()//为ASC委托绑定
 	if (AAuraPlayerState* AuraPS = GetAuraPS())
 	{
 		AuraPS->OnXPChangedDelegate.AddUObject(this,&UOverlayWidgetController::OnXPChanged);
-		AuraPS->OnLevelChangedDelegate.AddLambda([this](int32 NewLevel)
+		AuraPS->OnLevelChangedDelegate.AddLambda([this](int32 NewLevel, bool bLevelUp)
 		{
-			OnLevelUPDelegate.Broadcast(NewLevel);
+			OnLevelUPDelegate.Broadcast(NewLevel,bLevelUp);
 		});
 	}
 

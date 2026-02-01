@@ -5,6 +5,9 @@
 
 #include "AbilitySystemComponent.h"
 #include "NiagaraComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Data/LevelUpInfo.h"
 #include "Aura/Public/AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
@@ -48,7 +51,35 @@ void AAuraCharacter::PossessedBy(AController* NewController)//在此时，PC已�
 	//work in server
 	Super::PossessedBy(NewController);//Controller设置完毕
 	InitAbilityActorInfo();//此时初始化可以取到controller了
-	AddCharacterAbilities();
+	LoadProgress();
+}
+
+void AAuraCharacter::LoadProgress()
+{
+	AAuraGameModeBase* GameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	ULoadScreenSaveGame* SaveData = GameMode->GetCurGameSaveData();
+	if (SaveData == nullptr) return;
+
+	//第一次创建人物（之前没有保存数据时）不能从磁盘中获取属性所以需要赋给默认值, 可以用一个bool标记状态
+	if (SaveData->bFirstLoad)//在第一个检查点处变为false（saveprogress函数）
+	{
+		InitializeDefaultAttributes();
+		AddCharacterAbilities();
+	}else
+	{
+		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		{
+			AuraPlayerState->SetLevel(SaveData->PlayerLevel);
+			AuraPlayerState->SetXP(SaveData->XP);
+			AuraPlayerState->SetSpellPoints(SaveData->SpellPoints);
+			AuraPlayerState->SetAttributePoints(SaveData->AttributePoints);
+		}
+		UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromDisk(this,AbilitySystemComponent,SaveData);
+		//Load Ability From Disk
+		UAuraAbilitySystemComponent* Asc = Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponent());
+		Asc->LoadAbilitiesFromDisk(SaveData);
+	}
+	GameMode->LoadWorldState(GetWorld());
 }
 
 void AAuraCharacter::OnRep_PlayerState()//因为PC不会复制到客户端，当character生成时，PC将Character与PlayerStatus绑定到一起，PS会复制到客户端
@@ -145,7 +176,40 @@ void AAuraCharacter::SaveProgress_Implementation(const FName& CheckPointTag)
 		ULoadScreenSaveGame* SaveObject = GameMode->GetCurGameSaveData();
 		if (SaveObject == nullptr) return;
 		SaveObject->PlayerStartTag = CheckPointTag;
+		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		{
+			SaveObject->PlayerLevel = AuraPlayerState->GetPlayerLevel();
+			SaveObject->XP = AuraPlayerState->GetXP();
+			SaveObject->AttributePoints = AuraPlayerState->GetAttributePoints();
+			SaveObject->SpellPoints = AuraPlayerState->GetSpellPoints();
+		}
+	
+		SaveObject->Strength = UAuraAttributeSet::GetStrengthAttribute().GetNumericValue(GetAttributeSet());
+		SaveObject->Intelligence = UAuraAttributeSet::GetIntelligenceAttribute().GetNumericValue(GetAttributeSet());
+		SaveObject->Vigor = UAuraAttributeSet::GetVigorAttribute().GetNumericValue(GetAttributeSet());
+		SaveObject->Resilence = UAuraAttributeSet::GetResilienceAttribute().GetNumericValue(GetAttributeSet());
+		SaveObject->bFirstLoad = false;//第一个检查点处保存
+
+		if (!HasAuthority()) return;
+		FForeachAbility ForeachAbility;
+		UAuraAbilitySystemComponent* Asc = Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponent());
+		SaveObject->SavedAbilities.Empty();
+		ForeachAbility.BindLambda([this,Asc,SaveObject](const FGameplayAbilitySpec& AbilitySpec)
+		{
+			FSavedAbility SavedAbility;
+			UAbilityInfo* AbilityInfo= UAuraAbilitySystemLibrary::GetAbilityInfo(this);
+			FAuraAbilityInfo Info = AbilityInfo->FindInfoFromAbilityTag(Asc->GetAbilityTagFromSpec(AbilitySpec));
+			SavedAbility.AbilityClass = Info.Ability;
+			SavedAbility.AbilityTag = Info.AbilityTag;
+			SavedAbility.AbilityType = Info.AbilityType;
+			SavedAbility.AbilitySlot = Asc->GetSlotFromAbilityTag(Info.AbilityTag);
+			SavedAbility.AbilityStatus = Asc->GetStatusTagFromSpec(AbilitySpec);
+			SavedAbility.AbilityLevel = AbilitySpec.Level;
+			SaveObject->SavedAbilities.AddUnique(SavedAbility);
+		});
+		Asc->ForEachAbility(ForeachAbility);
 		GameMode->SaveCurGameProgress(SaveObject);
+		GameMode->SaveWorldState(GetWorld());
 	}
 }
 
@@ -160,6 +224,7 @@ void AAuraCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
+
 
 void AAuraCharacter::InitAbilityActorInfo()
 {
@@ -180,7 +245,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 			AuraHUD->InitOverlay(AuraPlayerController,AuraPlayerState,AbilitySystemComponent,AttributeSet);
 		}
 	}
-	InitializeDefaultAttributes();
+	//InitializeDefaultAttributes();更换从磁盘加载
 	OnAscRegister.Broadcast(AbilitySystemComponent);
 }
 

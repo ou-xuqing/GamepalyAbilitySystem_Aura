@@ -30,6 +30,8 @@ public:
 
 	ULoadScreenSaveGame* GetCurGameSaveData();
 	void SaveCurGameProgress(ULoadScreenSaveGame* SaveObject);
+	void SaveWorldState(UWorld* World);
+	void LoadWorldState(UWorld* World);
 	
 	UPROPERTY(EditDefaultsOnly,Category="Enemy CharacterClass Info")
 	TObjectPtr<UCharacterClassInfo> CharacterClassInfo;

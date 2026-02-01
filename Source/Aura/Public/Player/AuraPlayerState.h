@@ -12,6 +12,7 @@ class UAttributeSet;
 class UAbilitySystemComponent;
 //不在蓝图中绑定的委托可以不用dynamic
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateChanged,int32);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLevelChanged,int32,bool);
 /**
  * 继承IAbilitySystemInterface重写GetAbiliySystemComponent方法
  * 并且在构造方法中初试化ASC和AttributSet
@@ -33,7 +34,7 @@ class AURA_API AAuraPlayerState : public APlayerState,public IAbilitySystemInter
 	FORCEINLINE int32 GetPlayerLevel() const{return Level;}
 	void AddToLevel(int32 InLevel);
 	void SetLevel(int32 InLevel);
-	FPlayerStateChanged OnLevelChangedDelegate;
+	FLevelChanged OnLevelChangedDelegate;
 	//
 	
 	//XP

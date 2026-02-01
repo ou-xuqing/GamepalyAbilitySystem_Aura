@@ -3,10 +3,13 @@
 
 #include "Game/AuraGameModeBase.h"
 
+#include "EngineUtils.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/PlayerStart.h"
+#include "Interaction/SaveInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 //通过name和id来找到对应的存档
 void AAuraGameModeBase::SaveLoadScreen(UMVVM_LoadSlot* LoadSlot)
@@ -22,6 +25,7 @@ void AAuraGameModeBase::SaveLoadScreen(UMVVM_LoadSlot* LoadSlot)
 	LoadScreenSaveGame->LoadSlotState = Taken;
 	LoadScreenSaveGame->MapName = LoadSlot->GetMapName();
 	LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
+	LoadScreenSaveGame->PlayerLevel = LoadSlot->GetPlayerLevel();
 	UGameplayStatics::SaveGameToSlot(LoadScreenSaveGame,LoadSlot->GetLoadSlotName(),LoadSlot->LoadSlotIndex);
 }
 
@@ -69,6 +73,90 @@ void AAuraGameModeBase::SaveCurGameProgress(ULoadScreenSaveGame* SaveObject)
 	GameInstance->PlayerStartTag = SaveObject->PlayerStartTag;
 	
 	UGameplayStatics::SaveGameToSlot(SaveObject,GameInstance->LoadSlotName,GameInstance->LoadSlotIndex);
+}
+//保存世界中的Actor（继承ISaveInterface接口）
+void AAuraGameModeBase::SaveWorldState(UWorld* World)
+{
+	FString WorldName = World->GetName();
+	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	UAuraGameInstance* GameIns = Cast<UAuraGameInstance>(GetGameInstance());
+	if (ULoadScreenSaveGame* SaveData = LoadSlotData(GameIns->LoadSlotName,GameIns->LoadSlotIndex))
+	{
+		if (!SaveData->HasSavedMap(WorldName))
+		{
+			FSavedMap SavedMap;
+			SavedMap.MapName = WorldName;
+			SaveData->SavedMaps.Add(SavedMap);
+		}
+		FSavedMap SavedMap = SaveData->GetSavedMapFromMapName(WorldName);
+		SavedMap.SavedActors.Empty();
+
+		for (FActorIterator It(World);It;++It)//迭代器遍历世界上的Actor
+		{
+			AActor* Actor = *It;
+			if (!IsValid(Actor) || !Actor->Implements<USaveInterface>()) continue;
+
+			FSavedActor SavedActor;
+			SavedActor.ActorName = Actor->GetFName();
+			SavedActor.Transform = Actor->GetTransform();
+			/*
+			 * TODO：：学习UE中存储SaveGame标志变量步骤
+			 */
+			FMemoryWriter MemoryWriter(SavedActor.Bytes);
+			FObjectAndNameAsStringProxyArchive Archive(MemoryWriter,true);
+			Archive.ArIsSaveGame = true;
+			
+			Actor->Serialize(Archive);
+
+			SavedMap.SavedActors.AddUnique(SavedActor);
+		}
+
+		for (FSavedMap& MapToReplace : SaveData->SavedMaps)
+		{
+			if (MapToReplace.MapName == WorldName)
+			{
+				MapToReplace = SavedMap;
+			}
+		}
+		UGameplayStatics::SaveGameToSlot(SaveData,GameIns->LoadSlotName,GameIns->LoadSlotIndex);
+	}
+}
+
+void AAuraGameModeBase::LoadWorldState(UWorld* World)
+{
+	FString WorldName = World->GetName();
+	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	UAuraGameInstance* GameIns = Cast<UAuraGameInstance>(GetGameInstance());
+	if (ULoadScreenSaveGame* SaveData = LoadSlotData(GameIns->LoadSlotName,GameIns->LoadSlotIndex))
+	{
+		for (FActorIterator It(World);It;++It)
+		{
+			AActor* Actor = *It;
+			if (!Actor->Implements<USaveInterface>()) continue;
+
+			for (FSavedActor SavedActor : SaveData->GetSavedMapFromMapName(WorldName).SavedActors)
+			{
+				if (SavedActor.ActorName == Actor->GetFName())
+				{
+					if (ISaveInterface::Execute_ShouldLoadTransform(Actor))
+					{
+						Actor->SetActorTransform(SavedActor.Transform);
+					}
+					
+					FMemoryReader MemoryReader(SavedActor.Bytes);
+					FObjectAndNameAsStringProxyArchive Archive(MemoryReader,true);
+					Archive.ArIsSaveGame = true;
+			
+					Actor->Serialize(Archive);
+					
+					ISaveInterface::Execute_LoadActor(Actor);
+					
+				}
+			}
+		}
+	}
 }
 
 //通过playerstartTag来选择场景中的playerstart然后生成角色.

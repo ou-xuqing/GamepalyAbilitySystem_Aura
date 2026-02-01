@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AuraAbilitySystemComponent.generated.h"
 
+class ULoadScreenSaveGame;
 class UAuraAbilitySystemComponent;
 class UAuraGameplayAbility;
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer&)
@@ -35,7 +36,8 @@ public:
 	FActivatePassiveNiagara ActivatePassiveNiagaraDelegate;
 	
 	bool bStartupAbilitiesGiven = false;
-	
+
+	void LoadAbilitiesFromDisk(ULoadScreenSaveGame* SaveData);
 	void AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);//ASC is where to add Ability
 	void AddCharacterPassiveAbilities(TArray<TSubclassOf<UGameplayAbility>> &StartupPassiveAbilities);
 
@@ -49,6 +51,7 @@ public:
 	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetStatusTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+	FGameplayTag GetStatusFromAbilityTag(const FGameplayTag& AbilityTag);
 	FGameplayAbilitySpec* GetSpecFromTag(const FGameplayTag& AbilityTag);
 	FGameplayTag GetSlotFromAbilityTag(const FGameplayTag& AbilityTag);//Slot == InputTag
 	bool GetDescriptionFromAbilityTag(const FGameplayTag& AbilityTag,FString& OutDescription,FString& OutDescriptionNextLevel);

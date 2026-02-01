@@ -19,6 +19,23 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()//因为该处GameplayTag
 	//GEngine->AddOnScreenDebugMessage(-1,4.f,FColor::Blue,FString::Printf(TEXT("Tag: %s"),*Secondary_Armor.ToString()));
 }
 
+void UAuraAbilitySystemComponent::LoadAbilitiesFromDisk(ULoadScreenSaveGame* SaveData)
+{
+	for (FSavedAbility& Ability : SaveData->SavedAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability.AbilityClass,Ability.AbilityLevel);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability.AbilitySlot);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(Ability.AbilityStatus);
+		GiveAbility(AbilitySpec);
+		if (Ability.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive) && Ability.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped))
+		{
+			TryActivateAbility(AbilitySpec.Handle);
+		}
+	}
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast();
+}
+
 void UAuraAbilitySystemComponent::AddCharacterAbilities(TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)//只在服务器中调用
 {
 	for (const auto Ability : StartupAbilities)
@@ -40,6 +57,7 @@ void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(TArray<TSubclassO
 	for (const auto Ability : StartupPassiveAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability,1);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 		GiveAbilityAndActivateOnce(AbilitySpec);//被动技能的类是GameplayAbility，所以不需要cast到AuraGameplayAbility
 	}
 }
@@ -125,7 +143,7 @@ FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbi
 {
 	for (const FGameplayTag& DyTag : AbilitySpec.GetDynamicSpecSourceTags())
 	{
-		if (DyTag.MatchesTag(FGameplayTag::RequestGameplayTag("InputTag")))
+		if (DyTag.MatchesTag(FGameplayTag::RequestGameplayTag("InputTag")))//InputTag可以在技能设计时填入也可以在游玩时自行修改
 		{
 			return DyTag;
 		}
@@ -140,6 +158,22 @@ FGameplayTag UAuraAbilitySystemComponent::GetStatusTagFromSpec(const FGameplayAb
 		if (DyTag.MatchesTag(FGameplayTag::RequestGameplayTag("Abilities.Status")))
 		{
 			return DyTag;
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetStatusFromAbilityTag(const FGameplayTag& AbilityTag)
+{
+	FScopedAbilityListLock AbilityListLock(*this);
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())//只要能力被give，就会放在可激活能力里面
+	{
+		for (FGameplayTag Tag : Spec.Ability->GetAssetTags())
+		{
+			if (Tag.MatchesTagExact(AbilityTag))
+			{
+				return GetStatusTagFromSpec(Spec);
+			}
 		}
 	}
 	return FGameplayTag();
@@ -320,6 +354,8 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
 					TryActivateAbility(AbilitySpec->Handle);
 					MulticastActivatePassiveEffect(AbilityTag,true);
 				}
+				AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GetStatusTagFromSpec(*AbilitySpec));
+				AbilitySpec->GetDynamicSpecSourceTags().AddTag(AuraGameplayTags.Abilities_Status_Equipped);
 			}
 			AssignSlotToAbility(Slot,*AbilitySpec);//给新装备的技能分配技能栏
 			MarkAbilitySpecDirty(*AbilitySpec);

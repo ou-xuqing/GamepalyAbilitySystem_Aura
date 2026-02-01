@@ -39,6 +39,7 @@ void UMVVM_LoadScreen::LoadData()
 			LoadSlot->SetPlayerName(SaveGame->PlayerName);
 			LoadSlot->LoadSlotState = SaveGame->LoadSlotState;
 			LoadSlot->SetMapName(SaveGame->MapName);
+			LoadSlot->SetPlayerLevel(SaveGame->PlayerLevel);
 			LoadSlot->PlayerStartTag = SaveGame->PlayerStartTag;
 		}else
 		{

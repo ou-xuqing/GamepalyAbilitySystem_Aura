@@ -33,7 +33,7 @@ struct FUIWidgetRow : public FTableRowBase//MessageTable行结构，GameplayTag�
 struct FOnAttributeChangeData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAtrributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetSignature, FUIWidgetRow, Row);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPlayerLevelSignatrue, int32, Level, bool, bLevelUp);
 
 /**
  * 对需要的AttributeSet中的属性设置委托
@@ -67,7 +67,7 @@ public:
 	FOnAtrributeChangedSignature OnXPBarChangedDelegate;
 
 	UPROPERTY(BlueprintAssignable,category="GAS|XP")
-	FPlayerStateSignatrue OnLevelUPDelegate;
+	FPlayerLevelSignatrue OnLevelUPDelegate;
 	
 	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraASC);
 

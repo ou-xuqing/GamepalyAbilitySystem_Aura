@@ -92,6 +92,35 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 	const FGameplayEffectSpecHandle VitalSpecHandle = Asc->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes,Level,VitalContextHandle);
 	Asc->ApplyGameplayEffectSpecToSelf(*VitalSpecHandle.Data.Get());
 }
+
+void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromDisk(const UObject* WorldContextObject,UAbilitySystemComponent* Asc, ULoadScreenSaveGame* SaveData)
+{
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	FGameplayEffectContextHandle EffectContextHandle = Asc->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(Asc->GetAvatarActor());
+	FGameplayEffectSpecHandle SpecHandle = Asc->MakeOutgoingSpec(CharacterClassInfo->PrimaryAttributes_SetByCaller,1.f,EffectContextHandle);
+
+	//设置多种参数
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Attribute_Primary_Strength,SaveData->Strength);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Attribute_Primary_Intelligence,SaveData->Intelligence);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Attribute_Primary_Resilience,SaveData->Resilence);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Attribute_Primary_Vigor,SaveData->Vigor);
+
+	Asc->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+
+	FGameplayEffectContextHandle SecondaryContextHandle= Asc->MakeEffectContext();
+	SecondaryContextHandle.AddSourceObject(Asc->GetAvatarActor());
+	const FGameplayEffectSpecHandle SecondarySpecHandle = Asc->MakeOutgoingSpec(CharacterClassInfo->SecondaryAttributes_Aura,1.f,SecondaryContextHandle);
+	Asc->ApplyGameplayEffectSpecToSelf(*SecondarySpecHandle.Data.Get());
+	
+	FGameplayEffectContextHandle VitalContextHandle= Asc->MakeEffectContext();
+	VitalContextHandle.AddSourceObject(Asc->GetAvatarActor());
+	const FGameplayEffectSpecHandle VitalSpecHandle = Asc->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes_Aura,1.f,VitalContextHandle);
+	Asc->ApplyGameplayEffectSpecToSelf(*VitalSpecHandle.Data.Get());
+}
+
 //给Enemy赋予能力，因为Aura的能力大部分都要和玩家的操作相关，所以在ASC有单独的一套赋予能力的函数AddCharacterAbility。
 void UAuraAbilitySystemLibrary::GiveAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* Asc,ECharacterClass CharacterClass)
 {
