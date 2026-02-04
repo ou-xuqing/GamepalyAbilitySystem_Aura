@@ -7,6 +7,7 @@
 #include "AI/AuraAIController.h"
 #include "Charactor/AuraCharacterBase.h"
 #include "Interaction/AuraEnemyInterface.h"
+#include "Interaction/HighLightInterface.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraEnemy.generated.h"
 
@@ -15,15 +16,16 @@
  * 并且在构造方法中初始化ASC和AttributSet
  */
 UCLASS()
-class AURA_API AAuraEnemy : public AAuraCharacterBase, public IAuraEnemyInterface
+class AURA_API AAuraEnemy : public AAuraCharacterBase, public IAuraEnemyInterface, public IHighLightInterface
 {
 	GENERATED_BODY()
 public:
 	AAuraEnemy();
 	
 	/* EnemyInterface */
-	virtual void HighlightActor() override;
-	virtual void UnHighlightActor() override;
+	virtual void HighlightActor_Implementation() override;
+	virtual void UnHighlightActor_Implementation() override;
+	virtual void SetMoveToLocation_Implementation(FVector& OutLocation) override;
 	//Set在BTT_Attack中设置（通过读取行为树中的targetToFollow）
 	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
 	virtual AActor* GetCombatTarget_Implementation() override;//Get直接在蓝图中调用
@@ -48,15 +50,15 @@ public:
 	virtual void Die(FVector InDeathImpulse) override;
 
 	virtual void Knockback(FVector InKnockback) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnLoot();
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
 
 	virtual void InitializeDefaultAttributes() const override;
-	
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character class Default")
-	int32 Level=1;
 	
 	UPROPERTY(BlueprintReadOnly,Category="Combat")
 	bool bHitReacting = false;

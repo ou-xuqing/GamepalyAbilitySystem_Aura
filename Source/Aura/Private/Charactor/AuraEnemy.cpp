@@ -31,20 +31,26 @@ AAuraEnemy::AAuraEnemy()
 	
 	HealthWidget = CreateDefaultSubobject<UWidgetComponent>("HealthWidget");
 	HealthWidget->SetupAttachment(GetRootComponent());
+
+	GetMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_RED);
+	Weapon->SetCustomDepthStencilValue(CUSTOM_DEPTH_RED);
 }
 
-void AAuraEnemy::HighlightActor()
+void AAuraEnemy::HighlightActor_Implementation()
 {
 	GetMesh()->SetRenderCustomDepth(true);
-	GetMesh()->SetCustomDepthStencilValue(CUSTOM_RED);
 	Weapon->SetRenderCustomDepth(true); 
-	Weapon->SetCustomDepthStencilValue(CUSTOM_RED);
 }
 
-void AAuraEnemy::UnHighlightActor()
+void AAuraEnemy::UnHighlightActor_Implementation()
 {
 	GetMesh()->SetRenderCustomDepth(false);
 	Weapon->SetRenderCustomDepth(false);
+}
+
+void AAuraEnemy::SetMoveToLocation_Implementation(FVector& OutLocation)
+{
+	//do nothing
 }
 
 void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)
@@ -89,6 +95,7 @@ void AAuraEnemy::Die(FVector InDeathImpulse)
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"),true);
 	}
+	SpawnLoot();
 	Super::Die(InDeathImpulse);
 }
 

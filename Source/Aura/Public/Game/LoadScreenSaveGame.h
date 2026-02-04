@@ -94,7 +94,10 @@ public:
 
 	UPROPERTY()
 	FString MapName = FString();
-
+	//TSoftObjectPtr<UWorld>存储的世界可以获得AssertName
+	UPROPERTY()
+	FString MapAssertName = FString();
+	
 	UPROPERTY()
 	FName PlayerStartTag;
 

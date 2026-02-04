@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "AuraGameModeBase.generated.h"
 
+class ULootTiers;
 class USaveGame;
 class ULoadScreenSaveGame;
 class UMVVM_LoadSlot;
@@ -30,7 +31,7 @@ public:
 
 	ULoadScreenSaveGame* GetCurGameSaveData();
 	void SaveCurGameProgress(ULoadScreenSaveGame* SaveObject);
-	void SaveWorldState(UWorld* World);
+	void SaveWorldState(UWorld* World, FString DestinationWorldAssetName = FString(""));
 	void LoadWorldState(UWorld* World);
 	
 	UPROPERTY(EditDefaultsOnly,Category="Enemy CharacterClass Info")
@@ -39,6 +40,18 @@ public:
 	UPROPERTY(EditDefaultsOnly,Category="Aura Ability Info")
 	TObjectPtr<UAbilityInfo> AbilityInfo;
 
+	UPROPERTY(EditDefaultsOnly,Category="Enemy LootTires")
+	TObjectPtr<ULootTiers> LootTiers;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<USaveGame> SaveGameClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UAbilityInfo> AbilityInfoClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UCharacterClassInfo> CharacterClassInfoClass;
+	
 	UPROPERTY(EditDefaultsOnly,Category="Load Screen")
 	TSubclassOf<USaveGame> LoadSlotSaveGameClass;
 
@@ -54,7 +67,11 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	FName DefaultPlayerStartTag;
 	
+	FString GetMapNameFromMapAssertName(FString InMapAssertName);
+	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	void PlayerDeath(ACharacter* DeathPlayer);
 protected:
 	virtual void BeginPlay() override;
 };

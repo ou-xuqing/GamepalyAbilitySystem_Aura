@@ -128,18 +128,18 @@ int32 AAuraCharacter::GetXP_Implementation() const
 	return AuraPS->GetXP();
 }
 
-int32 AAuraCharacter::GetAttributePointsReward_Implementation(int32 Level) const
+int32 AAuraCharacter::GetAttributePointsReward_Implementation(int32 InLevel) const
 {
 	AAuraPlayerState* AuraPS = GetPlayerState<AAuraPlayerState>();
 	check(AuraPS);
-	return AuraPS->LevelUpInfo->LevelUpInformation[Level].AttributePointReward;
+	return AuraPS->LevelUpInfo->LevelUpInformation[InLevel].AttributePointReward;
 }
 
-int32 AAuraCharacter::GetSpellPointsReward_Implementation(int32 Level) const
+int32 AAuraCharacter::GetSpellPointsReward_Implementation(int32 InLevel) const
 {
 	AAuraPlayerState* AuraPS = GetPlayerState<AAuraPlayerState>();
 	check(AuraPS);
-	return AuraPS->LevelUpInfo->LevelUpInformation[Level].SpellPointReward;
+	return AuraPS->LevelUpInfo->LevelUpInformation[InLevel].SpellPointReward;
 }
 
 int32 AAuraCharacter::FindLevelForXP_Implementation(int32 InXP)
@@ -209,7 +209,6 @@ void AAuraCharacter::SaveProgress_Implementation(const FName& CheckPointTag)
 		});
 		Asc->ForEachAbility(ForeachAbility);
 		GameMode->SaveCurGameProgress(SaveObject);
-		GameMode->SaveWorldState(GetWorld());
 	}
 }
 
@@ -218,6 +217,23 @@ int32 AAuraCharacter::GetPlayerLevel_Implementation()
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	return AuraPlayerState->GetPlayerLevel();
+}
+
+void AAuraCharacter::Die(FVector InDeathImpulse)
+{
+	Super::Die(InDeathImpulse);
+
+	FTimerDelegate DeathTimerDelegate;
+	DeathTimerDelegate.BindLambda([this]()
+	{
+		AAuraGameModeBase* GameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+		if (GameMode)
+		{
+			GameMode->PlayerDeath(this);
+		}
+	});
+	GetWorldTimerManager().SetTimer(DeathTimerHandle,DeathTimerDelegate,DeathTime,false);
+	TopDownCameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 
 void AAuraCharacter::BeginPlay()

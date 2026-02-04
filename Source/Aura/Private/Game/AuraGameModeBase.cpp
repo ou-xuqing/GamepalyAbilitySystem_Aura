@@ -10,6 +10,7 @@
 #include "Interaction/SaveInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "GameFramework/Character.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 //通过name和id来找到对应的存档
 void AAuraGameModeBase::SaveLoadScreen(UMVVM_LoadSlot* LoadSlot)
@@ -26,6 +27,7 @@ void AAuraGameModeBase::SaveLoadScreen(UMVVM_LoadSlot* LoadSlot)
 	LoadScreenSaveGame->MapName = LoadSlot->GetMapName();
 	LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
 	LoadScreenSaveGame->PlayerLevel = LoadSlot->GetPlayerLevel();
+	LoadScreenSaveGame->MapAssertName = LoadSlot->MapAssertName;
 	UGameplayStatics::SaveGameToSlot(LoadScreenSaveGame,LoadSlot->GetLoadSlotName(),LoadSlot->LoadSlotIndex);
 }
 
@@ -75,7 +77,7 @@ void AAuraGameModeBase::SaveCurGameProgress(ULoadScreenSaveGame* SaveObject)
 	UGameplayStatics::SaveGameToSlot(SaveObject,GameInstance->LoadSlotName,GameInstance->LoadSlotIndex);
 }
 //保存世界中的Actor（继承ISaveInterface接口）
-void AAuraGameModeBase::SaveWorldState(UWorld* World)
+void AAuraGameModeBase::SaveWorldState(UWorld* World, FString DestinationWorldAssetName)
 {
 	FString WorldName = World->GetName();
 	WorldName.RemoveFromStart(World->StreamingLevelsPrefix);
@@ -83,6 +85,13 @@ void AAuraGameModeBase::SaveWorldState(UWorld* World)
 	UAuraGameInstance* GameIns = Cast<UAuraGameInstance>(GetGameInstance());
 	if (ULoadScreenSaveGame* SaveData = LoadSlotData(GameIns->LoadSlotName,GameIns->LoadSlotIndex))
 	{
+
+		if (DestinationWorldAssetName != FString(""))//如果DestinationWorldAssetName不为空。说明正在进入另外一张地图,由于保存的是世界softPtr所以使用AssertName来找到MapName
+		{
+			SaveData->MapAssertName = DestinationWorldAssetName;
+			SaveData->MapName = GetMapNameFromMapAssertName(DestinationWorldAssetName);
+		}
+		
 		if (!SaveData->HasSavedMap(WorldName))
 		{
 			FSavedMap SavedMap;
@@ -159,6 +168,18 @@ void AAuraGameModeBase::LoadWorldState(UWorld* World)
 	}
 }
 
+FString AAuraGameModeBase::GetMapNameFromMapAssertName(FString InMapAssertName)
+{
+	for (auto& Map : Maps)
+	{
+		if (Map.Value.ToSoftObjectPath().GetAssetName() == InMapAssertName)
+		{
+			return Map.Key;
+		}
+	}
+	return FString();
+}
+
 //通过playerstartTag来选择场景中的playerstart然后生成角色.
 AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 {
@@ -182,6 +203,15 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 		return CurChoosePlayerStart;
 	}
 	return nullptr;
+}
+
+void AAuraGameModeBase::PlayerDeath(ACharacter* DeathPlayer)
+{
+	ULoadScreenSaveGame* SaveGame = GetCurGameSaveData();
+	if (SaveGame)
+	{
+		UGameplayStatics::OpenLevel(DeathPlayer,FName(SaveGame->MapAssertName));
+	}
 }
 
 void AAuraGameModeBase::BeginPlay()

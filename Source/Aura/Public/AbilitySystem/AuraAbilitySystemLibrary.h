@@ -9,6 +9,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AuraAbilitySystemLibrary.generated.h"
 
+class ULootTiers;
 struct FDamageAbilityEffectParams;
 class UAbilityInfo;
 class AAuraHUD;
@@ -54,6 +55,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAuraAbility")
 	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
 
+	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DefaultAuraAbility",meta=(DefaultToSelf = "WorldContextObject"))
+	static ULootTiers* GetLootTiers(const UObject* WorldContextObject);
+	
 	/*
 	 *  GetEffectContextProps
 	 *  蓝图或者PostAttribute中调用Get

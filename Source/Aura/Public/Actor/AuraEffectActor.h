@@ -37,7 +37,7 @@ class AURA_API AAuraEffectActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AAuraEffectActor();
-	
+	virtual void Tick(float DeltaSeconds) override;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -51,6 +51,38 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void OnEndOverlap(AActor* TargetActor);
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector CalculateLocation;
+
+	UPROPERTY(BlueprintReadWrite)
+	FRotator CalculateRotation;
+	
+	void ItemMovement(float DeltaSeconds); 
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	bool bRotator = false;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	float RotationRate = 45.f;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	bool bSinMovement = false;
+
+	UFUNCTION(BlueprintCallable)
+	void StartSinMovement();
+
+	UFUNCTION(BlueprintCallable)
+	void StartRotator();
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	float SinAmplitude = 1.f;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	float SinPeriodConstant = 1.f;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Pick Up Movement")
+	FVector InitialLocation;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
 	bool bDestroyOnEffectApplication = false;
@@ -82,6 +114,8 @@ protected:
 	//infinite的效果需要在重叠结束时取消作用，使用Map将infinite效果与ASC对应存起来，重叠结束时将他们解绑并从Map中删除
 	TMap<FActiveGameplayEffectHandle, UAbilitySystemComponent*> ActiveEffectHandles;
 
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Applied Effect")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Applied Effect")
 	float ActorLevel = 1.f;
+private:
+	float RunningTime = 0.f;
 };

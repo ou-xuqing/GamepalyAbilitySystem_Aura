@@ -37,6 +37,10 @@ public:
 	
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
+	void SetLevel(int32 InLevel) {Level = InLevel;}
+	
+	void SetCharacterClass(ECharacterClass InClass) {CharacterClass = InClass;}
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Character class Default")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 
@@ -85,6 +89,8 @@ public:
 	
 	UFUNCTION(NetMulticast,Reliable)//广播标记
 	virtual void MultiCastHandleDeath(FVector InDeathImpulse);//广播到客户端
+
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -94,6 +100,9 @@ protected:
 	FOnDeath OnDeath;
 
 	FOnDamage OnDamage;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character class Default")
+	int32 Level=1;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
@@ -110,7 +119,7 @@ protected:
 	UPROPERTY(EditAnywhere,Category = "Combat")
 	FName TailSocketName;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead = false;
 
 	UPROPERTY(Replicated,BlueprintReadOnly)

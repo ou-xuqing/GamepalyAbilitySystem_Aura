@@ -10,12 +10,22 @@
 #include "UI/Widget/DamageTextComponent.h"
 #include "AuraPlayerController.generated.h"
 
+class IHighLightInterface;
 class UNiagaraSystem;
 class UAuraAbilitySystemComponent;
 class UAuraInputConfig;
 class UInputMappingContext;
 struct FInputActionValue;
-class IAuraEnemyInterface;
+
+enum class ETargetingStatus : uint8
+{
+	TargetingEnemy,
+	TargetingNoEnemy,
+	NoTargeting
+};
+
+
+
 /**
  * 增强输入，设置InputMappingContext和InputAction，在BeginPlay和SetupInputComponent和move中绑定增强输入
  * 在playertick和cursortrace中调用LastActor与ThisActor的高光函数
@@ -52,8 +62,8 @@ private:
 	void Move(const FInputActionValue& InputActionValue);
 	
 	void CursorTrace();
-	TScriptInterface<IAuraEnemyInterface> LastActor;
-	TScriptInterface<IAuraEnemyInterface> ThisActor;
+	TObjectPtr<AActor> LastActor;
+	TObjectPtr<AActor> ThisActor;
 	FHitResult CursorHit;
 
 	void AbilityInputTagPressed(FGameplayTag InputTag);
@@ -77,7 +87,7 @@ private:
 	float FollowTime = 0.f;
 	float ShortPressThreshold = 0.5f;
 
-	bool bTargeting = false;
+	ETargetingStatus TargetingStatus = ETargetingStatus::NoTargeting;
 	bool bAutoRunning  = false;
 	bool bShiftKeyDown = false;
 

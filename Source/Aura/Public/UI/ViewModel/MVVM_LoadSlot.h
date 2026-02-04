@@ -62,6 +62,9 @@ public:
 
 	UPROPERTY()
 	FName PlayerStartTag;
+
+	UPROPERTY()
+	FString MapAssertName;
 	
 private:
 	//添加AllowPrivateAccess后蓝图可访问
